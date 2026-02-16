@@ -1,0 +1,10 @@
+import axios from 'axios';
+
+// Central axios instance. Base URL targets your Laravel API host.
+export const http = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+});
