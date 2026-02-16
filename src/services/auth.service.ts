@@ -6,25 +6,45 @@ export interface LoginRequest {
 }
 
 interface LoginApiResponse {
+  token_type?: string;
   token?: string;
   access_token?: string;
+  user?: {
+    email?: string;
+  };
   data?: {
+    token_type?: string;
     token?: string;
     access_token?: string;
+    user?: {
+      email?: string;
+    };
   };
   message?: string;
 }
 
+export interface LoginResult {
+  accessToken: string;
+  tokenType: string;
+  email?: string;
+}
+
 // Login call to POST /auth/login
-export const loginRequest = async (payload: LoginRequest): Promise<string> => {
+export const loginRequest = async (payload: LoginRequest): Promise<LoginResult> => {
   const { data } = await http.post<LoginApiResponse>('/auth/login', payload);
 
   // Support common response shapes from different backend implementations.
-  const token = data.token ?? data.access_token ?? data.data?.token ?? data.data?.access_token;
+  const accessToken = data.token ?? data.access_token ?? data.data?.token ?? data.data?.access_token;
+  const tokenType = data.token_type ?? data.data?.token_type ?? 'Bearer';
+  const email = data.user?.email ?? data.data?.user?.email;
 
-  if (!token) {
+  if (!accessToken) {
     throw new Error('Login response does not include a token.');
   }
 
-  return token;
+  return {
+    accessToken,
+    tokenType,
+    email,
+  };
 };

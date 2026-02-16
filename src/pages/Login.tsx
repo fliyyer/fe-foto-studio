@@ -1,5 +1,5 @@
 import { Navigate, useNavigate } from "react-router-dom";
-import { Button, Card, Form, Input, Typography, message } from "antd";
+import { Button, Card, Form, Input, notification, Typography } from "antd";
 import axios from "axios";
 import type { LoginValues } from "../types/auth";
 import { getAuthToken, setAuthSession } from "../utils/auth";
@@ -20,22 +20,34 @@ const Login = (): JSX.Element => {
   const onFinish = async (values: LoginValues): Promise<void> => {
     try {
       // Real API login call using axios to your endpoint.
-      const tokenFromApi = await loginRequest(values);
-      setAuthSession(tokenFromApi, values.email);
-      message.success("Login berhasil.");
+      const loginResult = await loginRequest(values);
+      setAuthSession(
+        loginResult.accessToken,
+        loginResult.email ?? values.email,
+        loginResult.tokenType,
+      );
+      notification.success({
+        message: "Login Success!",
+        description: "You have successfully logged in.",
+      });
       navigate("/admin/dashboard", { replace: true });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const apiMessage =
           (error.response?.data as { message?: string } | undefined)?.message ??
           "Login gagal. Periksa email/password.";
-        message.error(apiMessage);
+        notification.error({
+          message: "Login Gagal",
+          description: apiMessage,
+        });
         return;
       }
 
-      message.error(
-        (error as Error).message || "Terjadi kesalahan saat login.",
-      );
+      notification.error({
+        message: "Login Gagal",
+        description:
+          (error as Error).message || "Terjadi kesalahan saat login.",
+      });
     }
   };
 

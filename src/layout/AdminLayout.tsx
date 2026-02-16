@@ -1,23 +1,23 @@
-import { Button, Layout, Menu, theme } from 'antd';
-import type { MenuProps } from 'antd';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { clearAuthSession, getAuthEmail } from '../utils/auth';
+import { Button, Layout, Menu, theme } from "antd";
+import type { MenuProps } from "antd";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { clearAuthSession, getAuthEmail } from "../utils/auth";
 
 const { Header, Sider, Content } = Layout;
 
-type MenuItem = Required<MenuProps>['items'][number];
+type MenuItem = Required<MenuProps>["items"][number];
 
 const menuItems: MenuItem[] = [
   {
-    key: '/admin/dashboard',
+    key: "/admin/dashboard",
     label: <Link to="/admin/dashboard">Dashboard</Link>,
   },
   {
-    key: '/admin/users',
+    key: "/admin/users",
     label: <Link to="/admin/users">Users</Link>,
   },
   {
-    key: '/admin/settings',
+    key: "/admin/settings",
     label: <Link to="/admin/settings">Settings</Link>,
   },
 ];
@@ -34,28 +34,36 @@ const AdminLayout = (): JSX.Element => {
 
   const onLogout = (): void => {
     clearAuthSession();
-    navigate('/login', { replace: true });
+    navigate("/login", { replace: true });
   };
 
   return (
-    <Layout className="min-h-screen">
-      <Sider breakpoint="lg" collapsedWidth="0" className="!bg-brand-black">
-        <div className="px-4 py-5 text-lg font-bold text-brand-white">Admin Panel</div>
+    <Layout className="min-h-screen bg-slate-100">
+      <Sider
+        theme="light"
+        width={240}
+        breakpoint="lg"
+        collapsedWidth="0"
+        className="border-r border-slate-200 bg-white"
+      >
+        <div className="px-4 py-5 text-lg font-bold text-slate-800">Admin Panel</div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           selectedKeys={[location.pathname]}
           items={menuItems}
-          className="!bg-brand-black"
+          className="border-r-0"
         />
       </Sider>
 
-      <Layout>
+      <Layout className="bg-slate-100">
         <Header
-          style={{ background: colorBgContainer }}
+          style={{ background: colorBgContainer, borderBottom: "1px solid #e2e8f0" }}
           className="flex items-center justify-between px-4 md:px-6"
         >
-          <span className="font-medium text-brand-black">Signed in as {email}</span>
+          <span className="font-medium text-slate-700">
+            Signed in as {email}
+          </span>
           <Button type="primary" danger onClick={onLogout}>
             Logout
           </Button>
