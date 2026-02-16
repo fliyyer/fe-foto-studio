@@ -272,7 +272,7 @@ const Studios = (): JSX.Element => {
     <div>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <Title level={2} className="!mb-1 !text-slate-800">
+          <Title level={2} className="!mb-1 !text-brand-black">
             Studios
           </Title>
         </div>
@@ -457,7 +457,7 @@ const Studios = (): JSX.Element => {
             return (
               <Col key={studio.id} xs={24} md={12} xl={8}>
                 <Card
-                  className="overflow-hidden border-slate-200 shadow-sm transition hover:shadow-md"
+                  className="overflow-hidden border-brand-black/10 shadow-sm transition hover:shadow-md"
                   bodyStyle={{ padding: 16 }}
                   cover={
                     imageUrl && !imageBroken ? (
@@ -474,7 +474,7 @@ const Studios = (): JSX.Element => {
                       />
                     ) : (
                       <div className="flex h-48 items-center justify-center bg-gradient-to-br from-cyan-100 via-white to-pink-100">
-                        <span className="text-lg font-semibold text-slate-600">
+                        <span className="text-lg font-semibold text-brand-black/70">
                           {studio.name}
                         </span>
                       </div>
@@ -482,20 +482,20 @@ const Studios = (): JSX.Element => {
                   }
                 >
                   <div className="mb-2 flex items-start justify-between gap-2">
-                    <Title level={4} className="!mb-0 !text-slate-800">
+                    <Title level={4} className="!mb-0 !text-brand-black">
                       {studio.name}
                     </Title>
                     <Tag color="cyan">{studio.city}</Tag>
                   </div>
 
-                  <Paragraph className="!mb-3 !text-slate-600">
+                  <Paragraph className="!mb-3 !text-brand-black/70">
                     <EnvironmentOutlined className="mr-2" />
                     {studio.address}
                   </Paragraph>
 
-                  <div className="flex items-center gap-2 text-slate-600">
+                  <div className="flex items-center gap-2 text-brand-black/70">
                     <FieldTimeOutlined />
-                    <Text className="!text-slate-600">
+                    <Text className="!text-brand-black/70">
                       {studio.open_time.slice(0, 5)} -{" "}
                       {studio.close_time.slice(0, 5)}
                     </Text>

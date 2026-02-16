@@ -347,10 +347,10 @@ const Addons = (): JSX.Element => {
     <div>
       <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <Title level={2} className="!mb-1 !text-slate-800">
+          <Title level={2} className="!mb-1 !text-brand-black">
             Add-ons
           </Title>
-          <Paragraph className="!mb-0 !text-slate-500">
+          <Paragraph className="!mb-0 !text-brand-black/70">
             Pilih studio dan package terlebih dahulu, lalu kelola add-ons per
             package.
           </Paragraph>
@@ -519,22 +519,22 @@ const Addons = (): JSX.Element => {
                       className={`w-full rounded-lg border p-3 text-left transition ${
                         selected
                           ? "border-brand-teal bg-cyan-50"
-                          : "border-slate-200 bg-white hover:border-slate-300"
+                          : "border-brand-black/10 bg-white hover:border-brand-pink/60"
                       }`}
                     >
                       <div className="mb-1 flex items-center justify-between">
-                        <span className="font-semibold text-slate-800">
+                        <span className="font-semibold text-brand-black">
                           {studio.name}
                         </span>
                         <Tag color={selected ? "cyan" : "default"}>
                           {studio.city}
                         </Tag>
                       </div>
-                      <p className="mb-1 text-xs text-slate-500">
+                      <p className="mb-1 text-xs text-brand-black/60">
                         <EnvironmentOutlined className="mr-1" />
                         {studio.address}
                       </p>
-                      <p className="mb-0 text-xs text-slate-500">
+                      <p className="mb-0 text-xs text-brand-black/60">
                         <ClockCircleOutlined className="mr-1" />
                         {studio.open_time.slice(0, 5)} -{" "}
                         {studio.close_time.slice(0, 5)}
@@ -580,11 +580,11 @@ const Addons = (): JSX.Element => {
                       className={`w-full rounded-lg border p-3 text-left transition ${
                         selected
                           ? "border-brand-teal bg-cyan-50"
-                          : "border-slate-200 bg-white hover:border-slate-300"
+                          : "border-brand-black/10 bg-white hover:border-brand-pink/60"
                       }`}
                     >
                       <div className="mb-1 flex items-center justify-between">
-                        <span className="font-semibold text-slate-800">
+                        <span className="font-semibold text-brand-black">
                           {pkg.name}
                         </span>
                         <Tag
@@ -595,7 +595,7 @@ const Addons = (): JSX.Element => {
                           {Number(pkg.is_active) === 1 ? "Active" : "Inactive"}
                         </Tag>
                       </div>
-                      <p className="mb-0 text-xs text-slate-500">
+                      <p className="mb-0 text-xs text-brand-black/60">
                         {pkg.category}
                       </p>
                     </button>
@@ -656,7 +656,7 @@ const Addons = (): JSX.Element => {
                 {addons.map((addon) => (
                   <Card key={addon.id} size="small">
                     <div className="mb-1 flex items-center justify-between gap-2">
-                      <span className="font-semibold text-slate-800">
+                      <span className="font-semibold text-brand-black">
                         {addon.name}
                       </span>
                       <Tag
@@ -667,11 +667,11 @@ const Addons = (): JSX.Element => {
                         {Number(addon.is_active) === 1 ? "Active" : "Inactive"}
                       </Tag>
                     </div>
-                    <p className="mb-1 text-xs text-slate-500">{addon.type}</p>
-                    <p className="mb-1 text-sm font-semibold text-slate-800">
+                    <p className="mb-1 text-xs text-brand-black/60">{addon.type}</p>
+                    <p className="mb-1 text-sm font-semibold text-brand-black">
                       {currencyIDR(addon.price)}
                     </p>
-                    <p className="mb-0 text-xs text-slate-500">
+                    <p className="mb-0 text-xs text-brand-black/60">
                       {addon.description ?? "-"}
                     </p>
 

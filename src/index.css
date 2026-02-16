@@ -12,5 +12,82 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #ffffff 0%, #f5ffff 100%);
+  font-family:
+    "Poppins",
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    sans-serif;
+  background:
+    radial-gradient(
+      circle at 8% 8%,
+      rgba(0, 191, 195, 0.18) 0,
+      rgba(0, 191, 195, 0) 35%
+    ),
+    radial-gradient(
+      circle at 92% 12%,
+      rgba(255, 34, 115, 0.16) 0,
+      rgba(255, 34, 115, 0) 30%
+    ),
+    radial-gradient(
+      circle at 75% 92%,
+      rgba(255, 211, 59, 0.2) 0,
+      rgba(255, 211, 59, 0) 28%
+    ),
+    #ffffff;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.ant-layout {
+  background: transparent;
+}
+
+.ant-card {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.ant-btn-primary {
+  font-weight: 600;
+}
+
+.ant-btn-default:not(:disabled):hover {
+  border-color: #ff2273;
+  color: #ff2273;
+}
+
+.ant-btn-dangerous.ant-btn-primary {
+  background: #ff2273;
+  border-color: #ff2273;
+  box-shadow: 0 8px 20px rgba(255, 34, 115, 0.28);
+}
+
+.ant-tag {
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.ant-input:focus,
+.ant-input-focused,
+.ant-input-number-focused,
+.ant-picker-focused,
+.ant-select-focused .ant-select-selector,
+.ant-input-affix-wrapper-focused {
+  border-color: #00bfc3 !important;
+  box-shadow: 0 0 0 2px rgba(0, 191, 195, 0.2) !important;
+}
+
+.ant-menu-light .ant-menu-item-selected {
+  font-weight: 700;
+}
+
+.ant-modal .ant-modal-content {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.ant-table-wrapper .ant-table-thead > tr > th {
+  font-weight: 700;
 }

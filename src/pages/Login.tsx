@@ -52,8 +52,8 @@ const Login = (): JSX.Element => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#e6ffff_0%,#ffffff_60%)] px-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#00bfc333_0%,#ffffff_50%),radial-gradient(circle_at_bottom_right,#ff227326_0%,#ffffff_40%)] px-4">
+      <Card className="w-full max-w-md border-brand-black/10 shadow-[0_16px_44px_rgba(0,0,0,0.10)]">
         <Title level={3} className="!mb-1 !text-brand-black">
           Welcome Back
         </Title>
@@ -93,7 +93,7 @@ const Login = (): JSX.Element => {
               type="primary"
               htmlType="submit"
               block
-              className="!h-10 !font-semibold"
+              className="!h-10 !border-none !bg-brand-teal !font-semibold hover:!bg-brand-pink"
             >
               Login
             </Button>

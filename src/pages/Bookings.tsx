@@ -259,8 +259,8 @@ const Bookings = (): JSX.Element => {
       width: 190,
       render: (_, record) => (
         <div>
-          <p className="mb-0 font-medium text-slate-800">{record.customer.name}</p>
-          <p className="mb-0 text-xs text-slate-500">{record.customer.phone}</p>
+          <p className="mb-0 font-medium text-brand-black">{record.customer.name}</p>
+          <p className="mb-0 text-xs text-brand-black/60">{record.customer.phone}</p>
         </div>
       ),
     },
@@ -270,8 +270,8 @@ const Bookings = (): JSX.Element => {
       width: 230,
       render: (_, record) => (
         <div>
-          <p className="mb-0 text-sm font-medium text-slate-800">{record.package.studio.name}</p>
-          <p className="mb-0 text-xs text-slate-500">{record.package.name}</p>
+          <p className="mb-0 text-sm font-medium text-brand-black">{record.package.studio.name}</p>
+          <p className="mb-0 text-xs text-brand-black/60">{record.package.name}</p>
         </div>
       ),
     },
@@ -281,8 +281,8 @@ const Bookings = (): JSX.Element => {
       width: 200,
       render: (_, record) => (
         <div>
-          <p className="mb-0 text-sm text-slate-700">{formatDate(record.booking_date)}</p>
-          <p className="mb-0 text-xs text-slate-500">{record.start_time.slice(0, 5)} - {record.end_time.slice(0, 5)}</p>
+          <p className="mb-0 text-sm text-brand-black/80">{formatDate(record.booking_date)}</p>
+          <p className="mb-0 text-xs text-brand-black/60">{record.start_time.slice(0, 5)} - {record.end_time.slice(0, 5)}</p>
         </div>
       ),
     },
@@ -338,7 +338,7 @@ const Bookings = (): JSX.Element => {
       </Descriptions>
 
       <Card size="small" title="Booking Notes">
-        <pre className="mb-0 overflow-x-auto whitespace-pre-wrap text-xs text-slate-600">{parseNotes(record.notes)}</pre>
+        <pre className="mb-0 overflow-x-auto whitespace-pre-wrap text-xs text-brand-black/70">{parseNotes(record.notes)}</pre>
       </Card>
 
       <Card size="small" title="Add-ons">
@@ -347,10 +347,10 @@ const Bookings = (): JSX.Element => {
         ) : (
           <div className="space-y-2">
             {record.booking_addons.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded border border-slate-200 px-3 py-2">
+              <div key={item.id} className="flex items-center justify-between rounded border border-brand-black/10 px-3 py-2">
                 <div>
-                  <p className="mb-0 text-sm font-medium text-slate-800">{item.addon.name}</p>
-                  <p className="mb-0 text-xs text-slate-500">{item.qty} x {currencyIDR(item.price)}</p>
+                  <p className="mb-0 text-sm font-medium text-brand-black">{item.addon.name}</p>
+                  <p className="mb-0 text-xs text-brand-black/60">{item.qty} x {currencyIDR(item.price)}</p>
                 </div>
                 <Text strong>{currencyIDR(item.subtotal)}</Text>
               </div>
@@ -370,8 +370,8 @@ const Bookings = (): JSX.Element => {
     <div>
       <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <Title level={2} className="!mb-1 !text-slate-800">Bookings</Title>
-          <Paragraph className="!mb-0 !text-slate-500">Daftar booking pelanggan dari endpoint admin booking.</Paragraph>
+          <Title level={2} className="!mb-1 !text-brand-black">Bookings</Title>
+          <Paragraph className="!mb-0 !text-brand-black/70">Daftar booking pelanggan dari endpoint admin booking.</Paragraph>
         </div>
 
         <Space>

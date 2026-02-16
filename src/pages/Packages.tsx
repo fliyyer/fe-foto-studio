@@ -350,10 +350,10 @@ const Packages = (): JSX.Element => {
     <div>
       <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <Title level={2} className="!mb-1 !text-slate-800">
+          <Title level={2} className="!mb-1 !text-brand-black">
             Packages
           </Title>
-          <Paragraph className="!mb-0 !text-slate-500">
+          <Paragraph className="!mb-0 !text-brand-black/70">
             Pilih studio terlebih dahulu, lalu tambahkan paket berdasarkan studio tersebut.
           </Paragraph>
         </div>
@@ -538,18 +538,18 @@ const Packages = (): JSX.Element => {
                       className={`w-full rounded-lg border p-3 text-left transition ${
                         isSelected
                           ? "border-brand-teal bg-cyan-50"
-                          : "border-slate-200 bg-white hover:border-slate-300"
+                          : "border-brand-black/10 bg-white hover:border-brand-pink/60"
                       }`}
                     >
                       <div className="mb-1 flex items-center justify-between">
-                        <span className="font-semibold text-slate-800">{studio.name}</span>
+                        <span className="font-semibold text-brand-black">{studio.name}</span>
                         <Tag color={isSelected ? "cyan" : "default"}>{studio.city}</Tag>
                       </div>
-                      <p className="mb-1 text-xs text-slate-500">
+                      <p className="mb-1 text-xs text-brand-black/60">
                         <EnvironmentOutlined className="mr-1" />
                         {studio.address}
                       </p>
-                      <p className="mb-0 text-xs text-slate-500">
+                      <p className="mb-0 text-xs text-brand-black/60">
                         <ClockCircleOutlined className="mr-1" />
                         {studio.open_time.slice(0, 5)} - {studio.close_time.slice(0, 5)}
                       </p>
@@ -631,15 +631,15 @@ const Packages = (): JSX.Element => {
                       }
                     >
                       <div className="mb-2 flex items-start justify-between gap-2">
-                        <span className="font-semibold text-slate-800">{pkg.name}</span>
+                        <span className="font-semibold text-brand-black">{pkg.name}</span>
                         <Tag color={Number(pkg.is_active) === 1 ? "green" : "default"}>
                           {Number(pkg.is_active) === 1 ? "Active" : "Inactive"}
                         </Tag>
                       </div>
 
-                      <p className="mb-1 text-xs text-slate-500">{pkg.category}</p>
-                      <p className="mb-1 text-sm font-semibold text-slate-800">{currencyIDR(pkg.price)}</p>
-                      <p className="mb-0 text-xs text-slate-500">
+                      <p className="mb-1 text-xs text-brand-black/60">{pkg.category}</p>
+                      <p className="mb-1 text-sm font-semibold text-brand-black">{currencyIDR(pkg.price)}</p>
+                      <p className="mb-0 text-xs text-brand-black/60">
                         Durasi {pkg.duration_minutes} menit • Max {pkg.max_person} orang
                       </p>
 
