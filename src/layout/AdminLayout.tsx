@@ -18,6 +18,10 @@ const menuItems: MenuItem[] = [
     label: <Link to="/admin/bookings">Bookings</Link>,
   },
   {
+    key: "/admin/vouchers",
+    label: <Link to="/admin/vouchers">Vouchers</Link>,
+  },
+  {
     key: "/admin/studios",
     label: <Link to="/admin/studios">Studios</Link>,
   },

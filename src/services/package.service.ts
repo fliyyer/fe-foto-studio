@@ -22,6 +22,41 @@ export interface StudioPackage extends StudioPackageResponse {
   thumbnail_url: string;
 }
 
+export interface PackageAddon {
+  id: number;
+  package_id: number;
+  name: string;
+  price: number | string;
+  type: string;
+  description: string | null;
+  is_active: boolean | number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface StudioPackageDetailResponse extends StudioPackageResponse {
+  addons: PackageAddon[];
+}
+
+export interface StudioPackageDetail extends StudioPackage {
+  addons: PackageAddon[];
+}
+
+export interface AvailableSlot {
+  start_time: string;
+  end_time: string;
+  booked_count: number;
+  remaining_quota: number;
+  is_available: boolean;
+}
+
+export interface PackageAvailableSlots {
+  booking_date: string;
+  slot_duration: number;
+  max_booking_per_slot: number;
+  slots: AvailableSlot[];
+}
+
 interface StudioPackagePayloadBase {
   name: string;
   category: string;
@@ -47,6 +82,11 @@ const mapPackage = (pkg: StudioPackageResponse): StudioPackage => ({
   thumbnail_url: resolveApiAssetUrl(pkg.thumbnail),
 });
 
+const mapPackageDetail = (pkg: StudioPackageDetailResponse): StudioPackageDetail => ({
+  ...mapPackage(pkg),
+  addons: pkg.addons ?? [],
+});
+
 // GET /studios/:id/packages package list for selected studio.
 export const getStudioPackages = async (
   studioId: number,
@@ -61,6 +101,34 @@ export const getStudioPackages = async (
       : [];
 
   return list.map((item) => mapPackage(item as StudioPackageResponse));
+};
+
+// GET /studios/:studioId/packages/:packageId get package detail.
+export const getStudioPackageDetail = async (
+  studioId: number,
+  packageId: number,
+): Promise<StudioPackageDetail> => {
+  const { data } = await http.get<ApiResponse<StudioPackageDetailResponse>>(
+    `/studios/${studioId}/packages/${packageId}`,
+  );
+  return mapPackageDetail(data.data);
+};
+
+// GET /studios/:studioId/packages/:packageId/available-slots?booking_date=YYYY-MM-DD
+export const getPackageAvailableSlots = async (
+  studioId: number,
+  packageId: number,
+  bookingDate: string,
+): Promise<PackageAvailableSlots> => {
+  const { data } = await http.get<ApiResponse<PackageAvailableSlots>>(
+    `/studios/${studioId}/packages/${packageId}/available-slots`,
+    {
+      params: {
+        booking_date: bookingDate,
+      },
+    },
+  );
+  return data.data;
 };
 
 // POST /studios/:id/packages create a package under studio.
