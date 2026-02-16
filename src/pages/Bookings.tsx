@@ -1,0 +1,487 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  Alert,
+  Button,
+  Card,
+  Descriptions,
+  Empty,
+  Form,
+  Input,
+  Modal,
+  Select,
+  Space,
+  Table,
+  Tag,
+  Typography,
+  notification,
+} from "antd";
+import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
+import { ReloadOutlined } from "@ant-design/icons";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import {
+  getAdminBookings,
+  rescheduleBooking,
+  type Booking,
+  updateBookingStatus,
+} from "../services/booking.service";
+import { clearAuthSession } from "../utils/auth";
+
+const { Title, Paragraph, Text } = Typography;
+
+interface StatusFormValues {
+  status: string;
+  payment_status: string;
+  payment_method: string;
+  payment_reference: string;
+  notes: string;
+}
+
+interface RescheduleFormValues {
+  booking_date: string;
+  start_time: string;
+  notes: string;
+}
+
+const currencyIDR = (value: string | number): string =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(value));
+
+const formatDate = (value: string): string =>
+  new Date(value).toLocaleDateString("id-ID", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  });
+
+const parseNotes = (notes: string | null): string => {
+  if (!notes) return "-";
+
+  try {
+    const parsed = JSON.parse(notes) as unknown;
+    if (typeof parsed === "string") return parsed;
+    return JSON.stringify(parsed, null, 2);
+  } catch {
+    return notes;
+  }
+};
+
+const statusColor = (status: string): string => {
+  const key = status.toLowerCase();
+  if (key === "paid" || key === "confirmed" || key === "completed") return "green";
+  if (key === "pending" || key === "unpaid") return "orange";
+  if (key === "cancelled" || key === "failed") return "red";
+  return "default";
+};
+
+const toInputDateValue = (value: string): string => value.slice(0, 10);
+
+const Bookings = (): JSX.Element => {
+  const navigate = useNavigate();
+  const [statusForm] = Form.useForm<StatusFormValues>();
+  const [rescheduleForm] = Form.useForm<RescheduleFormValues>();
+
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
+
+  const [page, setPage] = useState<number>(1);
+  const [perPage, setPerPage] = useState<number>(15);
+  const [total, setTotal] = useState<number>(0);
+
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState<boolean>(false);
+  const [isStatusSubmitting, setIsStatusSubmitting] = useState<boolean>(false);
+
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState<boolean>(false);
+  const [isRescheduleSubmitting, setIsRescheduleSubmitting] = useState<boolean>(false);
+
+  const handleUnauthorized = (): void => {
+    clearAuthSession();
+    navigate("/login", { replace: true });
+  };
+
+  const fetchBookings = async (nextPage = page, nextPerPage = perPage): Promise<void> => {
+    try {
+      setLoading(true);
+      setError("");
+      const result = await getAdminBookings({ page: nextPage, per_page: nextPerPage });
+
+      setBookings(result.data);
+      setPage(result.meta.current_page);
+      setPerPage(result.meta.per_page);
+      setTotal(result.meta.total);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          handleUnauthorized();
+          return;
+        }
+
+        const apiMessage =
+          (err.response?.data as { message?: string } | undefined)?.message ??
+          "Gagal mengambil data booking.";
+        setError(apiMessage);
+      } else {
+        setError("Terjadi kesalahan saat mengambil data booking.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeStatusModal = (): void => {
+    setIsStatusModalOpen(false);
+    setSelectedBooking(null);
+    statusForm.resetFields();
+  };
+
+  const closeRescheduleModal = (): void => {
+    setIsRescheduleModalOpen(false);
+    setSelectedBooking(null);
+    rescheduleForm.resetFields();
+  };
+
+  const openStatusModal = (booking: Booking): void => {
+    setSelectedBooking(booking);
+    statusForm.setFieldsValue({
+      status: booking.status,
+      payment_status: booking.payment_status,
+      payment_method: booking.payment_method,
+      payment_reference: booking.payment_reference ?? "",
+      notes: booking.notes ?? "",
+    });
+    setIsStatusModalOpen(true);
+  };
+
+  const openRescheduleModal = (booking: Booking): void => {
+    setSelectedBooking(booking);
+    rescheduleForm.setFieldsValue({
+      booking_date: toInputDateValue(booking.booking_date),
+      start_time: booking.start_time.slice(0, 5),
+      notes: booking.notes ?? "",
+    });
+    setIsRescheduleModalOpen(true);
+  };
+
+  const handleSubmitStatus = async (values: StatusFormValues): Promise<void> => {
+    if (!selectedBooking) return;
+
+    try {
+      setIsStatusSubmitting(true);
+      await updateBookingStatus(selectedBooking.id, {
+        status: values.status,
+        payment_status: values.payment_status,
+        payment_method: values.payment_method,
+        payment_reference: values.payment_reference || undefined,
+        notes: values.notes || undefined,
+      });
+      notification.success({ message: "Status booking berhasil diupdate" });
+      closeStatusModal();
+      await fetchBookings(page, perPage);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          handleUnauthorized();
+          return;
+        }
+        notification.error({
+          message: "Update status gagal",
+          description:
+            (err.response?.data as { message?: string } | undefined)?.message ??
+            "Terjadi kesalahan saat update status booking.",
+        });
+      } else {
+        notification.error({
+          message: "Update status gagal",
+          description: "Terjadi kesalahan saat update status booking.",
+        });
+      }
+    } finally {
+      setIsStatusSubmitting(false);
+    }
+  };
+
+  const handleSubmitReschedule = async (values: RescheduleFormValues): Promise<void> => {
+    if (!selectedBooking) return;
+
+    try {
+      setIsRescheduleSubmitting(true);
+      await rescheduleBooking(selectedBooking.id, {
+        booking_date: values.booking_date,
+        start_time: values.start_time,
+        notes: values.notes || undefined,
+      });
+      notification.success({ message: "Booking berhasil di-reschedule" });
+      closeRescheduleModal();
+      await fetchBookings(page, perPage);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          handleUnauthorized();
+          return;
+        }
+        notification.error({
+          message: "Reschedule gagal",
+          description:
+            (err.response?.data as { message?: string } | undefined)?.message ??
+            "Terjadi kesalahan saat reschedule booking.",
+        });
+      } else {
+        notification.error({
+          message: "Reschedule gagal",
+          description: "Terjadi kesalahan saat reschedule booking.",
+        });
+      }
+    } finally {
+      setIsRescheduleSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    void fetchBookings(1, perPage);
+  }, []);
+
+  const columns: ColumnsType<Booking> = [
+    {
+      title: "Invoice",
+      dataIndex: "invoice_number",
+      key: "invoice_number",
+      width: 210,
+      render: (value: string) => <Text code>{value}</Text>,
+    },
+    {
+      title: "Customer",
+      key: "customer",
+      width: 190,
+      render: (_, record) => (
+        <div>
+          <p className="mb-0 font-medium text-slate-800">{record.customer.name}</p>
+          <p className="mb-0 text-xs text-slate-500">{record.customer.phone}</p>
+        </div>
+      ),
+    },
+    {
+      title: "Studio / Paket",
+      key: "package",
+      width: 230,
+      render: (_, record) => (
+        <div>
+          <p className="mb-0 text-sm font-medium text-slate-800">{record.package.studio.name}</p>
+          <p className="mb-0 text-xs text-slate-500">{record.package.name}</p>
+        </div>
+      ),
+    },
+    {
+      title: "Jadwal",
+      key: "schedule",
+      width: 200,
+      render: (_, record) => (
+        <div>
+          <p className="mb-0 text-sm text-slate-700">{formatDate(record.booking_date)}</p>
+          <p className="mb-0 text-xs text-slate-500">{record.start_time.slice(0, 5)} - {record.end_time.slice(0, 5)}</p>
+        </div>
+      ),
+    },
+    {
+      title: "Total",
+      dataIndex: "total_price",
+      key: "total_price",
+      align: "right",
+      width: 150,
+      render: (value: string) => <Text strong>{currencyIDR(value)}</Text>,
+    },
+    {
+      title: "Status",
+      key: "status",
+      width: 180,
+      render: (_, record) => (
+        <Space>
+          <Tag color={statusColor(record.status)}>{record.status}</Tag>
+          <Tag color={statusColor(record.payment_status)}>{record.payment_status}</Tag>
+        </Space>
+      ),
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      width: 220,
+      render: (_, record) => (
+        <Space>
+          <Button size="small" onClick={() => openStatusModal(record)}>
+            Change Status
+          </Button>
+          <Button size="small" onClick={() => openRescheduleModal(record)}>
+            Reschedule
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
+  const onTableChange = (pagination: TablePaginationConfig): void => {
+    const nextPage = pagination.current ?? 1;
+    const nextPerPage = pagination.pageSize ?? perPage;
+    void fetchBookings(nextPage, nextPerPage);
+  };
+
+  const expandedRowRender = (record: Booking): JSX.Element => (
+    <div className="space-y-3">
+      <Descriptions size="small" bordered column={2}>
+        <Descriptions.Item label="Payment Method">{record.payment_method}</Descriptions.Item>
+        <Descriptions.Item label="Payment Ref">{record.payment_reference ?? "-"}</Descriptions.Item>
+        <Descriptions.Item label="Payment Expired At">{record.payment_expired_at ? new Date(record.payment_expired_at).toLocaleString("id-ID") : "-"}</Descriptions.Item>
+        <Descriptions.Item label="Customer Email">{record.customer.email}</Descriptions.Item>
+      </Descriptions>
+
+      <Card size="small" title="Booking Notes">
+        <pre className="mb-0 overflow-x-auto whitespace-pre-wrap text-xs text-slate-600">{parseNotes(record.notes)}</pre>
+      </Card>
+
+      <Card size="small" title="Add-ons">
+        {record.booking_addons.length === 0 ? (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Tidak ada add-ons" />
+        ) : (
+          <div className="space-y-2">
+            {record.booking_addons.map((item) => (
+              <div key={item.id} className="flex items-center justify-between rounded border border-slate-200 px-3 py-2">
+                <div>
+                  <p className="mb-0 text-sm font-medium text-slate-800">{item.addon.name}</p>
+                  <p className="mb-0 text-xs text-slate-500">{item.qty} x {currencyIDR(item.price)}</p>
+                </div>
+                <Text strong>{currencyIDR(item.subtotal)}</Text>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+
+  const paidCount = useMemo(
+    () => bookings.filter((booking) => booking.payment_status.toLowerCase() === "paid").length,
+    [bookings],
+  );
+
+  return (
+    <div>
+      <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <Title level={2} className="!mb-1 !text-slate-800">Bookings</Title>
+          <Paragraph className="!mb-0 !text-slate-500">Daftar booking pelanggan dari endpoint admin booking.</Paragraph>
+        </div>
+
+        <Space>
+          <Tag color="blue">Total: {total}</Tag>
+          <Tag color="green">Paid (page): {paidCount}</Tag>
+          <Button icon={<ReloadOutlined />} onClick={() => void fetchBookings(page, perPage)}>Refresh</Button>
+        </Space>
+      </div>
+
+      <Modal
+        title={`Change Status${selectedBooking ? ` - ${selectedBooking.invoice_number}` : ""}`}
+        open={isStatusModalOpen}
+        onCancel={closeStatusModal}
+        onOk={() => statusForm.submit()}
+        confirmLoading={isStatusSubmitting}
+        okText="Update"
+      >
+        <Form<StatusFormValues> layout="vertical" form={statusForm} onFinish={handleSubmitStatus}>
+          <Form.Item label="Booking Status" name="status" rules={[{ required: true, message: "Status wajib dipilih" }]}>
+            <Select
+              options={[
+                { label: "Pending", value: "pending" },
+                { label: "Confirmed", value: "confirmed" },
+                { label: "Completed", value: "completed" },
+                { label: "Cancelled", value: "cancelled" },
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item label="Payment Status" name="payment_status" rules={[{ required: true, message: "Payment status wajib dipilih" }]}>
+            <Select
+              options={[
+                { label: "Unpaid", value: "unpaid" },
+                { label: "Paid", value: "paid" },
+                { label: "Pending", value: "pending" },
+                { label: "Failed", value: "failed" },
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item label="Payment Method" name="payment_method" rules={[{ required: true, message: "Payment method wajib dipilih" }]}>
+            <Select
+              options={[
+                { label: "Pending", value: "pending" },
+                { label: "QRIS", value: "qris" },
+                { label: "Transfer", value: "transfer" },
+                { label: "Cash", value: "cash" },
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item label="Payment Reference" name="payment_reference">
+            <Input placeholder="TRX-123456" />
+          </Form.Item>
+
+          <Form.Item label="Notes" name="notes">
+            <Input.TextArea rows={3} placeholder="Verified by admin" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={`Reschedule${selectedBooking ? ` - ${selectedBooking.invoice_number}` : ""}`}
+        open={isRescheduleModalOpen}
+        onCancel={closeRescheduleModal}
+        onOk={() => rescheduleForm.submit()}
+        confirmLoading={isRescheduleSubmitting}
+        okText="Reschedule"
+      >
+        <Form<RescheduleFormValues>
+          layout="vertical"
+          form={rescheduleForm}
+          onFinish={handleSubmitReschedule}
+        >
+          <Form.Item label="Booking Date" name="booking_date" rules={[{ required: true, message: "Tanggal booking wajib diisi" }]}>
+            <Input type="date" />
+          </Form.Item>
+
+          <Form.Item label="Start Time" name="start_time" rules={[{ required: true, message: "Jam mulai wajib diisi" }]}>
+            <Input type="time" />
+          </Form.Item>
+
+          <Form.Item label="Notes" name="notes">
+            <Input.TextArea rows={3} placeholder="Reschedule by admin request" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {error ? (
+        <Alert type="error" showIcon className="!mb-4" message="Booking error" description={error} />
+      ) : null}
+
+      <Table<Booking>
+        rowKey="id"
+        loading={loading}
+        columns={columns}
+        dataSource={bookings}
+        scroll={{ x: 1360 }}
+        expandable={{ expandedRowRender }}
+        pagination={{
+          current: page,
+          pageSize: perPage,
+          total,
+          showSizeChanger: true,
+          showTotal: (count) => `${count} bookings`,
+        }}
+        onChange={onTableChange}
+      />
+    </div>
+  );
+};
+
+export default Bookings;

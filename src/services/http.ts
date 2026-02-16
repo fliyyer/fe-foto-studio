@@ -1,12 +1,46 @@
-import axios from 'axios';
-import { getAuthHeader } from '../utils/auth';
+import axios from "axios";
+import { getAuthHeader } from "../utils/auth";
 
-// Central axios instance. Base URL targets your Laravel API host.
+const defaultApiBaseUrl = "http://127.0.0.1:8000/api";
+
+// Central API config. Can be overridden using VITE_API_BASE_URL.
+export const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ||
+  defaultApiBaseUrl;
+
+// API origin derived from base url, used to resolve relative asset paths.
+export const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
+
+export const resolveApiAssetUrl = (path: string | null): string => {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+
+  // Laravel local disk absolute path:
+  // /home/.../storage/app/public/studios/file.jpg -> /storage/studios/file.jpg
+  const normalizedPath = path.replace(/\\/g, "/");
+  const marker = "/storage/app/public/";
+  const markerIndex = normalizedPath.indexOf(marker);
+  if (markerIndex !== -1) {
+    const relativeFile = normalizedPath.slice(markerIndex + marker.length);
+    return `${API_ORIGIN}/storage/${relativeFile}`;
+  }
+
+  if (normalizedPath.startsWith("public/")) {
+    return `${API_ORIGIN}/storage/${normalizedPath.slice("public/".length)}`;
+  }
+
+  if (normalizedPath.startsWith("/")) return `${API_ORIGIN}${normalizedPath}`;
+  if (normalizedPath.startsWith("storage/"))
+    return `${API_ORIGIN}/${normalizedPath}`;
+  return `${API_ORIGIN}/storage/${normalizedPath}`;
+};
+
+// Central axios instance. Base URL targets your API host.
 export const http = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
+    "Content-Type": "application/json",
+    Accept: "application/json",
   },
 });
 
