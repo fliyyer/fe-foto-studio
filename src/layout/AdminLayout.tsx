@@ -55,26 +55,26 @@ const AdminLayout = (): JSX.Element => {
   };
 
   return (
-    <Layout className="h-screen overflow-hidden bg-brand-teal/5">
+    <Layout className="h-screen overflow-hidden bg-brand-yellow/20">
       <Sider
         theme="light"
         width={240}
         breakpoint="lg"
         collapsedWidth="0"
-        className="h-screen overflow-y-auto border-r border-brand-black/10 bg-gradient-to-b from-white to-brand-teal/10"
+        className="h-screen overflow-y-auto border-r-4 border-brand-black"
       >
-        <div className="mb-4 border-b border-brand-black/10 px-3 py-2">
-          <div className="mb-2 rounded-xl bg-brand-yellow/80 px-2 py-1 text-center text-xs font-bold uppercase tracking-wide text-brand-black">
+        <div className="mb-4 border-b-4 border-brand-black px-3 py-2">
+          <div className="mb-2 border-2 border-brand-black bg-brand-yellow px-2 py-1 text-center text-xs font-bold uppercase tracking-wide text-brand-black shadow-[4px_4px_0_#000]">
             Equinox Admin
           </div>
           <div className="flex items-center justify-center">
-          <Image
-            preview={false}
-            src={Logo}
-            width={150}
-            alt="Logo"
-            className="inline-block "
-          />
+            <Image
+              preview={false}
+              src={Logo}
+              width={150}
+              alt="Logo"
+              className="inline-block "
+            />
           </div>
         </div>
         <Menu
@@ -86,19 +86,23 @@ const AdminLayout = (): JSX.Element => {
         />
       </Sider>
 
-      <Layout className="h-screen overflow-hidden bg-brand-teal/5">
+      <Layout className="h-screen overflow-hidden bg-brand-yellow/20">
         <Header
           style={{
-            background:
-              "linear-gradient(90deg, rgba(0,191,195,0.16) 0%, rgba(255,211,59,0.26) 60%, rgba(255,34,115,0.14) 100%)",
-            borderBottom: "1px solid rgba(0,0,0,0.08)",
+            background: "#ff2273",
+            borderBottom: "4px solid #000000",
           }}
           className="flex h-16 items-center justify-between px-4 md:px-6"
         >
-          <span className="font-medium text-brand-black/80">
+          <span className="font-bold text-brand-white">
             Signed in as {email}
           </span>
-          <Button type="primary" danger onClick={onLogout} className="!border-none">
+          <Button
+            type="primary"
+            danger
+            onClick={onLogout}
+            className="!border-none"
+          >
             Logout
           </Button>
         </Header>
@@ -108,9 +112,9 @@ const AdminLayout = (): JSX.Element => {
             style={{
               background: `${colorBgContainer}`,
               borderRadius: borderRadiusLG,
-              border: "1px solid rgba(0, 0, 0, 0.08)",
+              border: "3px solid #000000",
             }}
-            className="h-[calc(100vh-6.5rem)] overflow-y-auto bg-white/95 p-5 md:p-8"
+            className="h-[calc(100vh-6.5rem)] overflow-y-auto bg-white p-5 shadow-[8px_8px_0_#000] md:p-8"
           >
             <Outlet />
           </div>

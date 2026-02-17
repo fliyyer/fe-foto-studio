@@ -17,14 +17,14 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         colorError: "#ff2273",
         colorTextBase: "#000000",
         colorBgBase: "#ffffff",
-        borderRadius: 12,
+        borderRadius: 4,
         fontFamily: "Poppins, system-ui, -apple-system, Segoe UI, sans-serif",
       },
       components: {
         Layout: {
           headerBg: "#ffffff",
           siderBg: "#ffffff",
-          bodyBg: "#f7ffff",
+          bodyBg: "#ffffff",
         },
         Menu: {
           itemBg: "#ffffff",
@@ -33,18 +33,18 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
           itemSelectedColor: "#000000",
           itemSelectedBg: "#ffd33b",
           activeBarBorderWidth: 0,
-          itemBorderRadius: 10,
+          itemBorderRadius: 2,
         },
         Card: {
-          borderRadiusLG: 18,
-          colorBorderSecondary: "#0000001f",
+          borderRadiusLG: 4,
+          colorBorderSecondary: "#000000",
         },
         Table: {
-          headerBg: "#00bfc31a",
+          headerBg: "#00bfc3",
           headerColor: "#000000",
         },
         Button: {
-          primaryShadow: "0 8px 20px rgba(0, 191, 195, 0.32)",
+          primaryShadow: "4px 4px 0 #000000",
         },
       },
     }}

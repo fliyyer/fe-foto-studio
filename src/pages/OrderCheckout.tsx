@@ -18,7 +18,6 @@ import axios from "axios";
 import {
   CalendarOutlined,
   ClockCircleOutlined,
-  ExportOutlined,
   MinusCircleOutlined,
   PlusCircleOutlined,
   UserOutlined,
@@ -38,22 +37,95 @@ import {
   getBookingPaymentStatus,
   type BookingPaymentStatusResult,
 } from "../services/order.service";
+import CimbLogo from "../images/cimbniaga.png";
+import BniLogo from "../images/bni.png";
+import SampoernaLogo from "../images/sampoerna.png";
+import BncLogo from "../images/bnc.png";
+import MaybankLogo from "../images/maybank.png";
+import PermataLogo from "../images/pertmata.png";
+import AtmBersamaLogo from "../images/bersama.png";
+import ArthaGrahaLogo from "../images/artha graha.png";
+import BriLogo from "../images/bri.png";
+import PaypalLogo from "../images/paypal.png";
+import Qris from "../images/qris.png";
 
 const { Title, Paragraph } = Typography;
 
+interface PaymentMethodOption {
+  value: string;
+  label: string;
+  logoText: string;
+  logoSrc?: string;
+}
+
 const PAYMENT_METHOD_OPTIONS = [
-  { value: "cimb_niaga_va", label: "CIMB Niaga VA" },
-  { value: "bni_va", label: "BNI VA" },
-  { value: "qris", label: "QRIS" },
-  { value: "sampoerna_va", label: "Sampoerna VA" },
-  { value: "bnc_va", label: "BNC VA" },
-  { value: "maybank_va", label: "Maybank VA" },
-  { value: "permata_va", label: "Permata VA" },
-  { value: "atm_bersama_va", label: "ATM Bersama VA" },
-  { value: "artha_graha_va", label: "Artha Graha VA" },
-  { value: "bri_va", label: "BRI VA" },
-  { value: "paypal", label: "PayPal" },
-];
+  {
+    value: "qris",
+    label: "QRIS",
+    logoText: "QR",
+    logoSrc: Qris,
+  },
+  {
+    value: "bri_va",
+    label: "BRI VA",
+    logoText: "BRI",
+    logoSrc: BriLogo,
+  },
+  {
+    value: "cimb_niaga_va",
+    label: "CIMB Niaga VA",
+    logoText: "CIMB",
+    logoSrc: CimbLogo,
+  },
+  {
+    value: "bni_va",
+    label: "BNI VA",
+    logoText: "BNI",
+    logoSrc: BniLogo,
+  },
+  {
+    value: "sampoerna_va",
+    label: "Sampoerna VA",
+    logoText: "SP",
+    logoSrc: SampoernaLogo,
+  },
+  {
+    value: "bnc_va",
+    label: "BNC VA",
+    logoText: "BNC",
+    logoSrc: BncLogo,
+  },
+  {
+    value: "maybank_va",
+    label: "Maybank VA",
+    logoText: "MB",
+    logoSrc: MaybankLogo,
+  },
+  {
+    value: "permata_va",
+    label: "Permata VA",
+    logoText: "PR",
+    logoSrc: PermataLogo,
+  },
+  {
+    value: "atm_bersama_va",
+    label: "ATM Bersama VA",
+    logoText: "ATM",
+    logoSrc: AtmBersamaLogo,
+  },
+  {
+    value: "artha_graha_va",
+    label: "Artha Graha VA",
+    logoText: "AG",
+    logoSrc: ArthaGrahaLogo,
+  },
+  {
+    value: "paypal",
+    label: "PayPal",
+    logoText: "PP",
+    logoSrc: PaypalLogo,
+  },
+] as const satisfies readonly PaymentMethodOption[];
 
 interface CheckoutFormValues {
   name: string;
@@ -63,6 +135,15 @@ interface CheckoutFormValues {
   allow_social_upload: string;
   notes: string;
   payment_method: string;
+}
+
+interface BookingSuccessSummary {
+  bookerName: string;
+  bookerPhone: string;
+  bookerEmail: string;
+  packageName: string;
+  studioName: string;
+  paymentMethodLabel: string;
 }
 
 const formatCurrencyIDR = (value: number | string): string =>
@@ -165,6 +246,8 @@ const OrderCheckout = (): JSX.Element => {
   const [paymentUrl, setPaymentUrl] = useState<string>("");
   const [paymentStatusResult, setPaymentStatusResult] =
     useState<BookingPaymentStatusResult | null>(null);
+  const [successSummary, setSuccessSummary] =
+    useState<BookingSuccessSummary | null>(null);
   const selectedPaymentMethodLabel =
     PAYMENT_METHOD_OPTIONS.find(
       (method) => method.value === selectedPaymentMethod,
@@ -354,6 +437,17 @@ const OrderCheckout = (): JSX.Element => {
       if (invoiceNumber) {
         setTrackingInvoice(invoiceNumber);
       }
+      setSuccessSummary({
+        bookerName: values.name,
+        bookerPhone: values.phone,
+        bookerEmail: values.email,
+        packageName: pkgDetail?.name ?? "-",
+        studioName: pkgDetail?.studio_name ?? "-",
+        paymentMethodLabel:
+          PAYMENT_METHOD_OPTIONS.find(
+            (method) => method.value === values.payment_method,
+          )?.label ?? values.payment_method,
+      });
 
       if (paymentUrl) {
         setPaymentUrl(paymentUrl);
@@ -436,28 +530,18 @@ const OrderCheckout = (): JSX.Element => {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#00bfc336_0%,#ffffff_45%),radial-gradient(circle_at_top_right,#ff227326_0%,#ffffff_45%),radial-gradient(circle_at_bottom,#ffd33b2b_0%,#ffffff_50%)] px-4 py-6 md:px-8 md:py-8">
+    <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto max-w-7xl">
         <Modal
           centered
-          width={980}
-          title="Pembayaran Pakasir"
+          width={600}
+          title="Selesaikan Pembayaran"
           open={showPaymentModal}
+          maskClosable={false}
           onCancel={() => setShowPaymentModal(false)}
           footer={[
             <Button key="close" onClick={() => setShowPaymentModal(false)}>
               Tutup
-            </Button>,
-            <Button
-              key="open"
-              type="primary"
-              icon={<ExportOutlined />}
-              onClick={() =>
-                window.open(paymentUrl, "_blank", "noopener,noreferrer")
-              }
-              disabled={!paymentUrl}
-            >
-              Buka di Tab Baru
             </Button>,
           ]}
         >
@@ -469,7 +553,7 @@ const OrderCheckout = (): JSX.Element => {
             <iframe
               title="Pakasir Payment"
               src={paymentUrl}
-              className="h-[70vh] w-full rounded-lg border border-brand-black/10"
+              className="h-[60vh] w-full rounded-lg border border-brand-black/10 "
             />
           ) : (
             <Alert
@@ -482,6 +566,7 @@ const OrderCheckout = (): JSX.Element => {
         </Modal>
 
         <Modal
+          width={650}
           centered
           title="Booking Success"
           open={showSuccessModal}
@@ -490,6 +575,7 @@ const OrderCheckout = (): JSX.Element => {
             <Button
               key="ok"
               type="primary"
+              className="!bg-brand-yellow !text-black"
               loading={successActionLoading}
               onClick={handleSuccessOk}
             >
@@ -497,10 +583,16 @@ const OrderCheckout = (): JSX.Element => {
             </Button>,
           ]}
         >
-          <p className="mb-3 text-brand-black/80">
-            Pembayaran berhasil. Detail booking kamu:
-          </p>
-          <Descriptions column={1} size="small" bordered>
+          <div className="mb-4 border-2 border-brand-black bg-brand-teal p-3">
+            <Typography.Text className="mb-1 text-base font-extrabold  text-brand-black">
+              Pembayaran berhasil terkonfirmasi
+            </Typography.Text>
+            <p className="mb-0 text-sm text-brand-black/70">
+              Booking kamu sudah masuk ke sistem. Simpan detail ini untuk
+              referensi saat datang ke studio.
+            </p>
+          </div>
+          <Descriptions column={1} size="middle" bordered>
             <Descriptions.Item label="Invoice">
               {successInvoice ||
                 (paymentStatusResult?.payment?.order_id as
@@ -508,14 +600,28 @@ const OrderCheckout = (): JSX.Element => {
                   | undefined) ||
                 "-"}
             </Descriptions.Item>
-            <Descriptions.Item label="Paket">
-              {pkgDetail?.name ?? "-"}
+            <Descriptions.Item label="Nama">
+              {successSummary?.bookerName || form.getFieldValue("name") || "-"}
+              <span className="ml-1 font-semibold">
+                {successSummary?.bookerPhone ||
+                  form.getFieldValue("phone") ||
+                  "-"}
+              </span>
             </Descriptions.Item>
-            <Descriptions.Item label="Tanggal">
-              {formatDate(selectedDate)}
+            <Descriptions.Item label="Email">
+              {successSummary?.bookerEmail ||
+                form.getFieldValue("email") ||
+                "-"}
             </Descriptions.Item>
-            <Descriptions.Item label="Jam">
-              {selectedTime || "-"}
+            <Descriptions.Item label="Studio & Paket">
+              {successSummary?.studioName || pkgDetail?.studio_name || "-"} -{" "}
+              {successSummary?.packageName || pkgDetail?.name || "-"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Metode Pembayaran">
+              {successSummary?.paymentMethodLabel || selectedPaymentMethodLabel}
+            </Descriptions.Item>
+            <Descriptions.Item label="Tanggal & Jam">
+              {formatDate(selectedDate)} {selectedTime}
             </Descriptions.Item>
             <Descriptions.Item label="Total">
               {formatCurrencyIDR(grandTotal)}
@@ -531,9 +637,9 @@ const OrderCheckout = (): JSX.Element => {
         />
 
         <Alert
-          type="info"
+          type="warning"
           showIcon
-          className="!mb-5"
+          className="!mb-5 bg-brand-teal"
           message="Ini adalah halaman terakhir. Pastikan pesanan dan data Anda terisi dengan benar."
         />
 
@@ -573,7 +679,7 @@ const OrderCheckout = (): JSX.Element => {
                     />
                     <div>
                       <p className="mb-1 text-lg font-semibold text-brand-black">
-                        {pkgDetail.name}
+                        {pkgDetail.name} - {pkgDetail.studio_name}
                       </p>
                       <p className="mb-0 text-sm text-brand-black/70">
                         <CalendarOutlined className="mr-2 !text-brand-pink" />
@@ -725,7 +831,50 @@ const OrderCheckout = (): JSX.Element => {
                     label="Pilih metode pembayaran"
                     rules={[{ required: true }]}
                   >
-                    <Select options={PAYMENT_METHOD_OPTIONS} />
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {PAYMENT_METHOD_OPTIONS.map((method) => {
+                        const isActive = selectedPaymentMethod === method.value;
+
+                        return (
+                          <button
+                            key={method.value}
+                            type="button"
+                            onClick={() =>
+                              form.setFieldsValue({
+                                payment_method: method.value,
+                              })
+                            }
+                            className={`flex items-center gap-3 border-2 px-3 py-2 text-left transition-all ${
+                              isActive
+                                ? "border-brand-black bg-brand-yellow shadow-[4px_4px_0_#000]"
+                                : "border-brand-black bg-white hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[4px_4px_0_#000]"
+                            }`}
+                          >
+                            <div
+                              className={`flex h-10 w-10 items-center bg-white justify-center border-2 border-brand-black text-xs font-extrabold text-brand-black `}
+                            >
+                              {method.logoSrc ? (
+                                <img
+                                  src={method.logoSrc}
+                                  alt={method.label}
+                                  className="h-full w-full object-contain p-[2px]"
+                                />
+                              ) : (
+                                method.logoText
+                              )}
+                            </div>
+                            <div>
+                              <p className="mb-0 text-sm font-bold text-brand-black">
+                                {method.label}
+                              </p>
+                              <p className="mb-0 text-xs text-brand-black/60">
+                                {isActive ? "Dipilih" : "Pilih metode ini"}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </Form.Item>
                 </Card>
               </div>
@@ -752,7 +901,11 @@ const OrderCheckout = (): JSX.Element => {
                       {appliedVoucher ? (
                         <Button onClick={removeVoucher}>Hapus</Button>
                       ) : (
-                        <Button type="primary" onClick={applyVoucherCode}>
+                        <Button
+                          type="primary"
+                          className="!bg-brand-yellow text-black hover:!bg-brand-pink"
+                          onClick={applyVoucherCode}
+                        >
                           Apply
                         </Button>
                       )}
@@ -816,7 +969,7 @@ const OrderCheckout = (): JSX.Element => {
                     size="large"
                     loading={submitting}
                     icon={<UserOutlined />}
-                    className="!h-11 !border-none !bg-brand-teal !font-semibold hover:!bg-brand-pink"
+                    className="!h-11 !border-none !bg-brand-yellow text-black !font-semibold hover:!bg-brand-pink"
                   >
                     Bayar
                   </Button>

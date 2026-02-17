@@ -14,7 +14,8 @@ import {
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
-  EnvironmentOutlined,
+  FileImageOutlined,
+  PrinterOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -132,11 +133,11 @@ const OrderPackageSelection = (): JSX.Element => {
   }, [selectedStudioId]);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#00bfc336_0%,#ffffff_45%),radial-gradient(circle_at_top_right,#ff227326_0%,#ffffff_45%),radial-gradient(circle_at_bottom,#ffd33b2b_0%,#ffffff_50%)] px-4 py-6 md:px-8 md:py-8">
+    <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto max-w-7xl">
         <OrderFlowHeader step={2} backTo="/" backLabel="Ganti Studio" />
 
-        <section className="mb-6 rounded-3xl border border-brand-black/10 bg-gradient-to-r from-brand-teal/20 via-white to-brand-yellow/25 p-5 md:p-8">
+        <section className="mb-6 bg-brand-teal border-4 border-brand-black shadow-[8px_8px_0_#000] p-5 md:p-8">
           <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
             <div>
               <Title level={2} className="!mb-2 !text-brand-black">
@@ -232,15 +233,15 @@ const OrderPackageSelection = (): JSX.Element => {
               return (
                 <Col key={pkg.id} xs={24} md={12} xl={8}>
                   <Card
-                    className="group h-full overflow-hidden border !border-brand-black/10 transition-all duration-300 hover:-translate-y-1 hover:!border-brand-pink hover:shadow-[0_18px_36px_rgba(255,34,115,0.2)]"
-                    bodyStyle={{ padding: 16 }}
+                    className="group h-full overflow-hidden border-4 border-brand-black transition-all duration-200 shadow-[8px_8px_0_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0_#000]"
+                    bodyStyle={{ padding: 18 }}
                     cover={
                       pkg.thumbnail_url && !imageBroken ? (
-                        <div className="relative h-56 overflow-hidden">
+                        <div className="relative h-72 overflow-hidden border-b-4 border-brand-black bg-brand-black">
                           <img
                             src={pkg.thumbnail_url}
                             alt={pkg.name}
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-110"
                             onError={() =>
                               setBrokenImages((prev) => ({
                                 ...prev,
@@ -250,7 +251,7 @@ const OrderPackageSelection = (): JSX.Element => {
                           />
                         </div>
                       ) : (
-                        <div className="flex h-56 items-center justify-center bg-gradient-to-br from-brand-teal/25 via-white to-brand-pink/20">
+                        <div className="flex h-72 items-center justify-center border-b-4 border-brand-black bg-brand-teal/20">
                           <span className="px-4 text-center text-xl font-bold text-brand-black">
                             {pkg.name}
                           </span>
@@ -258,7 +259,10 @@ const OrderPackageSelection = (): JSX.Element => {
                       )
                     }
                   >
-                    <Tag color="#00bfc3" className="!mb-2 !font-semibold">
+                    <Tag
+                      color="#00bfc3"
+                      className="!mb-2 !border-2 !border-brand-black !font-bold"
+                    >
                       {pkg.category}
                     </Tag>
 
@@ -266,7 +270,7 @@ const OrderPackageSelection = (): JSX.Element => {
                       {pkg.name}
                     </Title>
 
-                    <div className="mb-3 space-y-1 rounded-xl bg-brand-yellow/25 p-3 text-sm text-brand-black/80">
+                    <div className="mb-3 space-y-1 border-2 border-brand-black bg-brand-yellow/30 p-3 text-sm text-brand-black/90">
                       <p className="mb-0 flex items-center gap-2">
                         <TeamOutlined className="!text-brand-pink" />
                         Max {pkg.max_person} orang
@@ -276,8 +280,12 @@ const OrderPackageSelection = (): JSX.Element => {
                         {pkg.duration_minutes} menit sesi foto
                       </p>
                       <p className="mb-0 flex items-center gap-2">
-                        <EnvironmentOutlined className="!text-brand-black/70" />
-                        Slot tiap {pkg.slot_duration} menit
+                        <PrinterOutlined className="!text-brand-black/70" />
+                        Free 1 print / session
+                      </p>
+                      <p className="mb-0 flex items-center gap-2">
+                        <FileImageOutlined className="!text-brand-black/70" />
+                        Free ALl Soft File
                       </p>
                     </div>
 
@@ -299,7 +307,7 @@ const OrderPackageSelection = (): JSX.Element => {
                       block
                       icon={<CheckCircleOutlined />}
                       onClick={() => onSelectPackage(pkg)}
-                      className="!h-10 !border-none !bg-brand-teal !font-semibold hover:!bg-brand-pink"
+                      className="!h-10 !border-2 !border-brand-black !bg-brand-yellow !text-black !font-extrabold shadow-[4px_4px_0_#000] hover:!bg-brand-pink hover:!text-white"
                     >
                       Pilih Paket
                     </Button>

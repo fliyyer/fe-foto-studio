@@ -5,6 +5,7 @@ interface StudioPackageResponse {
   id: number;
   studio_id: number;
   name: string;
+  studio_name: string;
   category: string;
   price: number;
   duration_minutes: number;
@@ -82,7 +83,9 @@ const mapPackage = (pkg: StudioPackageResponse): StudioPackage => ({
   thumbnail_url: resolveApiAssetUrl(pkg.thumbnail),
 });
 
-const mapPackageDetail = (pkg: StudioPackageDetailResponse): StudioPackageDetail => ({
+const mapPackageDetail = (
+  pkg: StudioPackageDetailResponse,
+): StudioPackageDetail => ({
   ...mapPackage(pkg),
   addons: pkg.addons ?? [],
 });
@@ -91,13 +94,15 @@ const mapPackageDetail = (pkg: StudioPackageDetailResponse): StudioPackageDetail
 export const getStudioPackages = async (
   studioId: number,
 ): Promise<StudioPackage[]> => {
-  const { data } = await http.get<ApiResponse<unknown>>(`/studios/${studioId}/packages`);
+  const { data } = await http.get<ApiResponse<unknown>>(
+    `/studios/${studioId}/packages`,
+  );
 
   const rootData = data.data as unknown;
   const list = Array.isArray(rootData)
     ? rootData
     : Array.isArray((rootData as { data?: unknown[] } | undefined)?.data)
-      ? ((rootData as { data: unknown[] }).data)
+      ? (rootData as { data: unknown[] }).data
       : [];
 
   return list.map((item) => mapPackage(item as StudioPackageResponse));
@@ -148,11 +153,15 @@ export const createStudioPackage = async (
   formData.append("is_active", payload.is_active ? "1" : "0");
   formData.append("thumbnail", payload.thumbnail);
 
-  await http.post<ApiResponse<unknown>>(`/studios/${studioId}/packages`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
+  await http.post<ApiResponse<unknown>>(
+    `/studios/${studioId}/packages`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     },
-  });
+  );
 };
 
 // POST /studios/:studioId/packages/:packageId update a package.
@@ -191,5 +200,7 @@ export const deleteStudioPackage = async (
   studioId: number,
   packageId: number,
 ): Promise<void> => {
-  await http.delete<ApiResponse<unknown>>(`/studios/${studioId}/packages/${packageId}`);
+  await http.delete<ApiResponse<unknown>>(
+    `/studios/${studioId}/packages/${packageId}`,
+  );
 };

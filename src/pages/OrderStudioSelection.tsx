@@ -61,11 +61,11 @@ const OrderStudioSelection = (): JSX.Element => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#00bfc336_0%,#ffffff_45%),radial-gradient(circle_at_top_right,#ff227326_0%,#ffffff_40%),radial-gradient(circle_at_bottom,#ffd33b2b_0%,#ffffff_45%)] px-4 py-6 md:px-8 md:py-8">
+    <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto max-w-6xl">
         <OrderFlowHeader step={1} />
 
-        <section className="mb-6 rounded-3xl border border-brand-black/10 bg-gradient-to-r from-brand-teal/20 via-white to-brand-yellow/25 p-5 md:p-8">
+        <section className="mb-6 border-4 !bg-brand-teal border-brand-black  p-5 shadow-[8px_8px_0_#000] md:p-8">
           <Title level={2} className="!mb-2 !text-brand-black">
             Pilih Studio Favoritmu
           </Title>
@@ -119,19 +119,19 @@ const OrderStudioSelection = (): JSX.Element => {
                   <Card
                     hoverable
                     onClick={() => setSelectedStudioId(studio.id)}
-                    className={`group overflow-hidden transition-all duration-300 ${
+                    className={`group overflow-hidden border-4 border-brand-black transition-all duration-200 ${
                       isSelected
-                        ? "-translate-y-1 border-2 !border-brand-pink shadow-[0_18px_40px_rgba(255,34,115,0.24)]"
-                        : "border !border-brand-black/10 hover:-translate-y-1 hover:!border-brand-teal/60 hover:shadow-[0_14px_34px_rgba(0,191,195,0.20)]"
+                        ? "-translate-x-1 -translate-y-1 !border-brand-pink shadow-[10px_10px_0_#000]"
+                        : "shadow-[8px_8px_0_#000] hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0_#000]"
                     }`}
-                    bodyStyle={{ padding: 16 }}
+                    bodyStyle={{ padding: 18 }}
                     cover={
                       imageUrl && !imageBroken ? (
-                        <div className="relative h-56 overflow-hidden">
+                        <div className="relative h-72 overflow-hidden border-b-4 border-brand-black">
                           <img
                             src={imageUrl}
                             alt={studio.name}
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            className="h-full w-full object-cover transition duration-300 group-hover:scale-110"
                             onError={() =>
                               setBrokenImages((prev) => ({
                                 ...prev,
@@ -139,17 +139,17 @@ const OrderStudioSelection = (): JSX.Element => {
                               }))
                             }
                           />
-                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent p-3">
+                          <div className="absolute inset-x-0 bottom-0 p-3">
                             <Tag
                               color="#00bfc3"
-                              className="!m-0 !font-semibold"
+                              className="!m-0 !border-brand-black !font-bold"
                             >
                               {studio.city}
                             </Tag>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex h-56 items-center justify-center bg-gradient-to-br from-brand-teal/25 via-white to-brand-pink/20">
+                        <div className="flex h-72 items-center justify-center border-b-4 border-brand-black bg-brand-teal/25">
                           <span className="text-xl font-bold text-brand-black">
                             {studio.name}
                           </span>
@@ -160,18 +160,25 @@ const OrderStudioSelection = (): JSX.Element => {
                     <Title level={4} className="!mb-1 !text-brand-black">
                       {studio.name}
                     </Title>
-                    <Paragraph className="!mb-3 !text-brand-black/70">
+                    <Paragraph className="!mb-4 !text-brand-black/70">
                       <EnvironmentOutlined className="mr-2 !text-brand-pink" />
                       {studio.address}
                     </Paragraph>
 
-                    <div className="flex items-center justify-between rounded-xl border border-brand-black/10 bg-brand-yellow/30 px-3 py-2">
-                      <div className="text-sm text-brand-black/80">
+                    <div className="flex items-center justify-between border-2 border-brand-black bg-brand-yellow px-3 py-2">
+                      <div className="text-sm font-semibold text-brand-black/90">
                         <FieldTimeOutlined className="mr-2 !text-brand-teal" />
                         {formatTime(studio.open_time)} -{" "}
                         {formatTime(studio.close_time)}
                       </div>
-                      {isSelected ? <Tag color="#ff2273">Dipilih</Tag> : null}
+                      {isSelected ? (
+                        <Tag
+                          color="#ff2273"
+                          className="!border-2 !border-brand-black !font-bold"
+                        >
+                          Dipilih
+                        </Tag>
+                      ) : null}
                     </div>
                   </Card>
                 </Col>
@@ -198,7 +205,7 @@ const OrderStudioSelection = (): JSX.Element => {
               icon={<RightOutlined />}
               onClick={handleContinue}
               disabled={!selectedStudio}
-              className="!h-11 !border-none !bg-brand-teal !px-6 !font-semibold hover:!bg-brand-pink"
+              className="!h-11 !border-none !bg-brand-yellow !text-brand-black !px-6 !font-semibold hover:!bg-brand-pink hover:!text-white"
             >
               Lanjut Pilih Paket
             </Button>

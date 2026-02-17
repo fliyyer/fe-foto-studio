@@ -13,6 +13,8 @@ import {
   CalendarOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
+  FileImageOutlined,
+  PrinterOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
 import dayjs, { type Dayjs } from "dayjs";
@@ -132,7 +134,7 @@ const OrderPackageDetail = (): JSX.Element => {
   }, [studioId, packageId, selectedDate]);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#00bfc336_0%,#ffffff_45%),radial-gradient(circle_at_top_right,#ff227326_0%,#ffffff_45%),radial-gradient(circle_at_bottom,#ffd33b2b_0%,#ffffff_50%)] px-4 py-6 md:px-8 md:py-8">
+    <div className="min-h-screen px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto max-w-7xl">
         <OrderFlowHeader
           step={3}
@@ -193,6 +195,14 @@ const OrderPackageDetail = (): JSX.Element => {
                 <p className="mb-0 flex items-center gap-2">
                   <ClockCircleOutlined className="!text-brand-teal" />{" "}
                   {pkgDetail.duration_minutes} menit sesi
+                </p>
+                <p className="mb-0 flex items-center gap-2">
+                  <PrinterOutlined className="!text-brand-black/70" />
+                  Free 1 print / session
+                </p>
+                <p className="mb-0 flex items-center gap-2">
+                  <FileImageOutlined className="!text-brand-black/70" />
+                  Free ALl Soft File
                 </p>
               </div>
             </Card>
@@ -276,7 +286,7 @@ const OrderPackageDetail = (): JSX.Element => {
                 icon={<CheckCircleOutlined />}
                 disabled={!selectedSlot}
                 onClick={onContinue}
-                className="!h-11 !border-none !bg-brand-teal !font-semibold hover:!bg-brand-pink"
+                className="!h-11 !border-none !bg-brand-yellow !text-brand-black font-semibold hover:!bg-brand-pink hover:!text-white"
               >
                 Selanjutnya
               </Button>
