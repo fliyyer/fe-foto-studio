@@ -362,6 +362,7 @@ const Addons = (): JSX.Element => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
+            className="bg-brand-yellow text-black hover:!bg-brand-pink"
             onClick={() => setIsAddModalOpen(true)}
             disabled={!selectedStudioId || !selectedPackageId}
           >
@@ -667,7 +668,9 @@ const Addons = (): JSX.Element => {
                         {Number(addon.is_active) === 1 ? "Active" : "Inactive"}
                       </Tag>
                     </div>
-                    <p className="mb-1 text-xs text-brand-black/60">{addon.type}</p>
+                    <p className="mb-1 text-xs text-brand-black/60">
+                      {addon.type}
+                    </p>
                     <p className="mb-1 text-sm font-semibold text-brand-black">
                       {currencyIDR(addon.price)}
                     </p>

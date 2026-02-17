@@ -12,6 +12,7 @@ interface StudioPackageResponse {
   slot_duration: number;
   max_booking_per_slot: number;
   description: string | null;
+  background: string | null;
   max_person: number;
   is_active: boolean | number;
   thumbnail: string | null;
@@ -66,6 +67,7 @@ interface StudioPackagePayloadBase {
   slot_duration: number;
   max_booking_per_slot: number;
   description: string;
+  background: string;
   max_person: number;
   is_active: boolean;
 }
@@ -149,6 +151,7 @@ export const createStudioPackage = async (
   formData.append("slot_duration", String(payload.slot_duration));
   formData.append("max_booking_per_slot", String(payload.max_booking_per_slot));
   formData.append("description", payload.description);
+  formData.append("background", payload.background);
   formData.append("max_person", String(payload.max_person));
   formData.append("is_active", payload.is_active ? "1" : "0");
   formData.append("thumbnail", payload.thumbnail);
@@ -178,6 +181,7 @@ export const updateStudioPackage = async (
   formData.append("slot_duration", String(payload.slot_duration));
   formData.append("max_booking_per_slot", String(payload.max_booking_per_slot));
   formData.append("description", payload.description);
+  formData.append("background", payload.background);
   formData.append("max_person", String(payload.max_person));
   formData.append("is_active", payload.is_active ? "1" : "0");
   if (payload.thumbnail) {

@@ -140,7 +140,9 @@ const Vouchers = (): JSX.Element => {
       const payload: CreateVoucherPayload = {
         ...values,
         max_discount:
-          values.discount_type === "percent" ? values.max_discount ?? 0 : null,
+          values.discount_type === "percent"
+            ? (values.max_discount ?? 0)
+            : null,
       };
 
       await createVoucher(payload);
@@ -175,7 +177,11 @@ const Vouchers = (): JSX.Element => {
   };
 
   const totalAvailableUsage = useMemo(
-    () => vouchers.reduce((sum, voucher) => sum + Number(voucher.available_usage || 0), 0),
+    () =>
+      vouchers.reduce(
+        (sum, voucher) => sum + Number(voucher.available_usage || 0),
+        0,
+      ),
     [vouchers],
   );
 
@@ -259,10 +265,18 @@ const Vouchers = (): JSX.Element => {
         </div>
 
         <Space>
-          <Button icon={<ReloadOutlined />} onClick={() => void fetchVouchers(page, perPage)}>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => void fetchVouchers(page, perPage)}
+          >
             Refresh
           </Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={openModal}>
+          <Button
+            type="primary"
+            className="bg-brand-yellow text-black hover:!bg-brand-pink"
+            icon={<PlusOutlined />}
+            onClick={openModal}
+          >
             Add Voucher
           </Button>
         </Space>
@@ -271,7 +285,11 @@ const Vouchers = (): JSX.Element => {
       <Row gutter={[16, 16]} className="mb-4">
         <Col xs={24} md={8}>
           <Card>
-            <Statistic title="Active Voucher (Page)" value={vouchers.length} prefix={<TagOutlined />} />
+            <Statistic
+              title="Active Voucher (Page)"
+              value={vouchers.length}
+              prefix={<TagOutlined />}
+            />
           </Card>
         </Col>
         <Col xs={24} md={8}>
@@ -322,12 +340,24 @@ const Vouchers = (): JSX.Element => {
         centered
         confirmLoading={isSubmitting}
       >
-        <Form<VoucherFormValues> form={form} layout="vertical" onFinish={onCreateVoucher}>
-          <Form.Item name="code" label="Code" rules={[{ required: true, message: "Kode wajib diisi" }]}> 
+        <Form<VoucherFormValues>
+          form={form}
+          layout="vertical"
+          onFinish={onCreateVoucher}
+        >
+          <Form.Item
+            name="code"
+            label="Code"
+            rules={[{ required: true, message: "Kode wajib diisi" }]}
+          >
             <Input placeholder="PROMO10" />
           </Form.Item>
 
-          <Form.Item name="name" label="Name" rules={[{ required: true, message: "Nama voucher wajib diisi" }]}> 
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true, message: "Nama voucher wajib diisi" }]}
+          >
             <Input placeholder="Diskon 10%" />
           </Form.Item>
 
@@ -350,7 +380,9 @@ const Vouchers = (): JSX.Element => {
               <Form.Item
                 name="discount_value"
                 label="Discount Value"
-                rules={[{ required: true, message: "Nilai diskon wajib diisi" }]}
+                rules={[
+                  { required: true, message: "Nilai diskon wajib diisi" },
+                ]}
               >
                 <InputNumber className="!w-full" min={1} />
               </Form.Item>

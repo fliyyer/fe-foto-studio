@@ -3,6 +3,7 @@ import {
   Alert,
   Button,
   Card,
+  DatePicker,
   Descriptions,
   Empty,
   Form,
@@ -12,12 +13,14 @@ import {
   Space,
   Table,
   Tag,
+  TimePicker,
   Typography,
   notification,
 } from "antd";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { ReloadOutlined } from "@ant-design/icons";
 import axios from "axios";
+import dayjs, { type Dayjs } from "dayjs";
 import { useNavigate } from "react-router-dom";
 import {
   getAdminBookings,
@@ -32,15 +35,11 @@ const { Title, Paragraph, Text } = Typography;
 interface StatusFormValues {
   status: string;
   payment_status: string;
-  payment_method: string;
-  payment_reference: string;
-  notes: string;
 }
 
 interface RescheduleFormValues {
-  booking_date: string;
-  start_time: string;
-  notes: string;
+  booking_date: Dayjs;
+  start_time: Dayjs;
 }
 
 const currencyIDR = (value: string | number): string =>
@@ -57,27 +56,63 @@ const formatDate = (value: string): string =>
     day: "2-digit",
   });
 
-const parseNotes = (notes: string | null): string => {
-  if (!notes) return "-";
+interface ParsedBookingNotes {
+  background: string;
+  allowSocialMediaUpload: string;
+  bookingNotes: string;
+}
+
+const parseBookingNotes = (notes: string | null): ParsedBookingNotes => {
+  if (!notes) {
+    return {
+      background: "-",
+      allowSocialMediaUpload: "-",
+      bookingNotes: "-",
+    };
+  }
 
   try {
-    const parsed = JSON.parse(notes) as unknown;
-    if (typeof parsed === "string") return parsed;
-    return JSON.stringify(parsed, null, 2);
+    const parsed = JSON.parse(notes) as
+      | string
+      | {
+          preferences?: {
+            background?: string;
+            allow_social_media_upload?: string;
+          };
+          notes?: string;
+        };
+
+    if (typeof parsed === "string") {
+      return {
+        background: "-",
+        allowSocialMediaUpload: "-",
+        bookingNotes: parsed || "-",
+      };
+    }
+
+    return {
+      background: parsed.preferences?.background ?? "-",
+      allowSocialMediaUpload:
+        parsed.preferences?.allow_social_media_upload ?? "-",
+      bookingNotes: parsed.notes ?? "-",
+    };
   } catch {
-    return notes;
+    return {
+      background: "-",
+      allowSocialMediaUpload: "-",
+      bookingNotes: notes,
+    };
   }
 };
 
 const statusColor = (status: string): string => {
   const key = status.toLowerCase();
-  if (key === "paid" || key === "confirmed" || key === "completed") return "green";
+  if (key === "paid" || key === "confirmed" || key === "completed")
+    return "green";
   if (key === "pending" || key === "unpaid") return "orange";
   if (key === "cancelled" || key === "failed") return "red";
   return "default";
 };
-
-const toInputDateValue = (value: string): string => value.slice(0, 10);
 
 const Bookings = (): JSX.Element => {
   const navigate = useNavigate();
@@ -89,26 +124,37 @@ const Bookings = (): JSX.Element => {
   const [error, setError] = useState<string>("");
 
   const [page, setPage] = useState<number>(1);
-  const [perPage, setPerPage] = useState<number>(15);
+  const [perPage, setPerPage] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
+  const [customerName, setCustomerName] = useState<string>("");
 
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState<boolean>(false);
   const [isStatusSubmitting, setIsStatusSubmitting] = useState<boolean>(false);
 
-  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState<boolean>(false);
-  const [isRescheduleSubmitting, setIsRescheduleSubmitting] = useState<boolean>(false);
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] =
+    useState<boolean>(false);
+  const [isRescheduleSubmitting, setIsRescheduleSubmitting] =
+    useState<boolean>(false);
 
   const handleUnauthorized = (): void => {
     clearAuthSession();
     navigate("/login", { replace: true });
   };
 
-  const fetchBookings = async (nextPage = page, nextPerPage = perPage): Promise<void> => {
+  const fetchBookings = async (
+    nextPage = page,
+    nextPerPage = perPage,
+    customerNameFilter = customerName,
+  ): Promise<void> => {
     try {
       setLoading(true);
       setError("");
-      const result = await getAdminBookings({ page: nextPage, per_page: nextPerPage });
+      const result = await getAdminBookings({
+        page: nextPage,
+        per_page: nextPerPage,
+        customer_name: customerNameFilter.trim() || undefined,
+      });
 
       setBookings(result.data);
       setPage(result.meta.current_page);
@@ -150,9 +196,6 @@ const Bookings = (): JSX.Element => {
     statusForm.setFieldsValue({
       status: booking.status,
       payment_status: booking.payment_status,
-      payment_method: booking.payment_method,
-      payment_reference: booking.payment_reference ?? "",
-      notes: booking.notes ?? "",
     });
     setIsStatusModalOpen(true);
   };
@@ -160,14 +203,15 @@ const Bookings = (): JSX.Element => {
   const openRescheduleModal = (booking: Booking): void => {
     setSelectedBooking(booking);
     rescheduleForm.setFieldsValue({
-      booking_date: toInputDateValue(booking.booking_date),
-      start_time: booking.start_time.slice(0, 5),
-      notes: booking.notes ?? "",
+      booking_date: dayjs(booking.booking_date.slice(0, 10)),
+      start_time: dayjs(`2000-01-01T${booking.start_time}`),
     });
     setIsRescheduleModalOpen(true);
   };
 
-  const handleSubmitStatus = async (values: StatusFormValues): Promise<void> => {
+  const handleSubmitStatus = async (
+    values: StatusFormValues,
+  ): Promise<void> => {
     if (!selectedBooking) return;
 
     try {
@@ -175,13 +219,10 @@ const Bookings = (): JSX.Element => {
       await updateBookingStatus(selectedBooking.id, {
         status: values.status,
         payment_status: values.payment_status,
-        payment_method: values.payment_method,
-        payment_reference: values.payment_reference || undefined,
-        notes: values.notes || undefined,
       });
       notification.success({ message: "Status booking berhasil diupdate" });
       closeStatusModal();
-      await fetchBookings(page, perPage);
+      await fetchBookings(page, perPage, customerName);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
@@ -205,19 +246,20 @@ const Bookings = (): JSX.Element => {
     }
   };
 
-  const handleSubmitReschedule = async (values: RescheduleFormValues): Promise<void> => {
+  const handleSubmitReschedule = async (
+    values: RescheduleFormValues,
+  ): Promise<void> => {
     if (!selectedBooking) return;
 
     try {
       setIsRescheduleSubmitting(true);
       await rescheduleBooking(selectedBooking.id, {
-        booking_date: values.booking_date,
-        start_time: values.start_time,
-        notes: values.notes || undefined,
+        booking_date: values.booking_date.format("YYYY-MM-DD"),
+        start_time: values.start_time.format("HH:mm"),
       });
       notification.success({ message: "Booking berhasil di-reschedule" });
       closeRescheduleModal();
-      await fetchBookings(page, perPage);
+      await fetchBookings(page, perPage, customerName);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
@@ -245,6 +287,10 @@ const Bookings = (): JSX.Element => {
     void fetchBookings(1, perPage);
   }, []);
 
+  const onSearchCustomer = (): void => {
+    void fetchBookings(1, perPage, customerName);
+  };
+
   const columns: ColumnsType<Booking> = [
     {
       title: "Invoice",
@@ -259,8 +305,12 @@ const Bookings = (): JSX.Element => {
       width: 190,
       render: (_, record) => (
         <div>
-          <p className="mb-0 font-medium text-brand-black">{record.customer.name}</p>
-          <p className="mb-0 text-xs text-brand-black/60">{record.customer.phone}</p>
+          <p className="mb-0 font-medium text-brand-black">
+            {record.customer.name}
+          </p>
+          <p className="mb-0 text-xs text-brand-black/60">
+            {record.customer.phone}
+          </p>
         </div>
       ),
     },
@@ -270,8 +320,12 @@ const Bookings = (): JSX.Element => {
       width: 230,
       render: (_, record) => (
         <div>
-          <p className="mb-0 text-sm font-medium text-brand-black">{record.package.studio.name}</p>
-          <p className="mb-0 text-xs text-brand-black/60">{record.package.name}</p>
+          <p className="mb-0 text-sm font-medium text-brand-black">
+            {record.package.studio.name}
+          </p>
+          <p className="mb-0 text-xs text-brand-black/60">
+            {record.package.name}
+          </p>
         </div>
       ),
     },
@@ -281,8 +335,12 @@ const Bookings = (): JSX.Element => {
       width: 200,
       render: (_, record) => (
         <div>
-          <p className="mb-0 text-sm text-brand-black/80">{formatDate(record.booking_date)}</p>
-          <p className="mb-0 text-xs text-brand-black/60">{record.start_time.slice(0, 5)} - {record.end_time.slice(0, 5)}</p>
+          <p className="mb-0 text-sm text-brand-black/80">
+            {formatDate(record.booking_date)}
+          </p>
+          <p className="mb-0 text-xs text-brand-black/60">
+            {record.start_time.slice(0, 5)} - {record.end_time.slice(0, 5)}
+          </p>
         </div>
       ),
     },
@@ -300,8 +358,12 @@ const Bookings = (): JSX.Element => {
       width: 180,
       render: (_, record) => (
         <Space>
-          <Tag color={statusColor(record.status)}>{record.status}</Tag>
-          <Tag color={statusColor(record.payment_status)}>{record.payment_status}</Tag>
+          <Tag className="uppercase" color={statusColor(record.status)}>
+            {record.status}
+          </Tag>
+          <Tag className="uppercase" color={statusColor(record.payment_status)}>
+            {record.payment_status}
+          </Tag>
         </Space>
       ),
     },
@@ -325,44 +387,79 @@ const Bookings = (): JSX.Element => {
   const onTableChange = (pagination: TablePaginationConfig): void => {
     const nextPage = pagination.current ?? 1;
     const nextPerPage = pagination.pageSize ?? perPage;
-    void fetchBookings(nextPage, nextPerPage);
+    void fetchBookings(nextPage, nextPerPage, customerName);
   };
 
-  const expandedRowRender = (record: Booking): JSX.Element => (
-    <div className="space-y-3">
-      <Descriptions size="small" bordered column={2}>
-        <Descriptions.Item label="Payment Method">{record.payment_method}</Descriptions.Item>
-        <Descriptions.Item label="Payment Ref">{record.payment_reference ?? "-"}</Descriptions.Item>
-        <Descriptions.Item label="Payment Expired At">{record.payment_expired_at ? new Date(record.payment_expired_at).toLocaleString("id-ID") : "-"}</Descriptions.Item>
-        <Descriptions.Item label="Customer Email">{record.customer.email}</Descriptions.Item>
-      </Descriptions>
+  const expandedRowRender = (record: Booking): JSX.Element => {
+    const parsedNotes = parseBookingNotes(record.notes);
 
-      <Card size="small" title="Booking Notes">
-        <pre className="mb-0 overflow-x-auto whitespace-pre-wrap text-xs text-brand-black/70">{parseNotes(record.notes)}</pre>
-      </Card>
+    return (
+      <div className="space-y-3">
+        <Descriptions size="small" bordered column={2}>
+          <Descriptions.Item label="Payment Method">
+            {record.payment_method}
+          </Descriptions.Item>
+          <Descriptions.Item label="Payment Ref">
+            {record.payment_reference ?? "-"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Payment Expired At">
+            {record.payment_expired_at
+              ? new Date(record.payment_expired_at).toLocaleString("id-ID")
+              : "-"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Customer Email">
+            {record.customer.email}
+          </Descriptions.Item>
+          <Descriptions.Item label="Background">
+            {parsedNotes.background}
+          </Descriptions.Item>
+          <Descriptions.Item label="Izin Upload Sosial Media">
+            {parsedNotes.allowSocialMediaUpload}
+          </Descriptions.Item>
+        </Descriptions>
 
-      <Card size="small" title="Add-ons">
-        {record.booking_addons.length === 0 ? (
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Tidak ada add-ons" />
-        ) : (
-          <div className="space-y-2">
-            {record.booking_addons.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded border border-brand-black/10 px-3 py-2">
-                <div>
-                  <p className="mb-0 text-sm font-medium text-brand-black">{item.addon.name}</p>
-                  <p className="mb-0 text-xs text-brand-black/60">{item.qty} x {currencyIDR(item.price)}</p>
+        <Card size="small" title="Booking Notes">
+          <pre className="mb-0 overflow-x-auto whitespace-pre-wrap text-xs text-brand-black/70">
+            {parsedNotes.bookingNotes}
+          </pre>
+        </Card>
+
+        <Card size="small" title="Add-ons">
+          {record.booking_addons.length === 0 ? (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="Tidak ada add-ons"
+            />
+          ) : (
+            <div className="space-y-2">
+              {record.booking_addons.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between rounded border border-brand-black/10 px-3 py-2"
+                >
+                  <div>
+                    <p className="mb-0 text-sm font-medium text-brand-black">
+                      {item.addon.name}
+                    </p>
+                    <p className="mb-0 text-xs text-brand-black/60">
+                      {item.qty} x {currencyIDR(item.price)}
+                    </p>
+                  </div>
+                  <Text strong>{currencyIDR(item.subtotal)}</Text>
                 </div>
-                <Text strong>{currencyIDR(item.subtotal)}</Text>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-    </div>
-  );
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+    );
+  };
 
   const paidCount = useMemo(
-    () => bookings.filter((booking) => booking.payment_status.toLowerCase() === "paid").length,
+    () =>
+      bookings.filter(
+        (booking) => booking.payment_status.toLowerCase() === "paid",
+      ).length,
     [bookings],
   );
 
@@ -370,14 +467,32 @@ const Bookings = (): JSX.Element => {
     <div>
       <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <Title level={2} className="!mb-1 !text-brand-black">Bookings</Title>
-          <Paragraph className="!mb-0 !text-brand-black/70">Daftar booking pelanggan dari endpoint admin booking.</Paragraph>
+          <Title level={2} className="!mb-1 !text-brand-black">
+            Bookings
+          </Title>
+          <Paragraph className="!mb-0 !text-brand-black/70">
+            Daftar booking pelanggan dari endpoint admin booking.
+          </Paragraph>
         </div>
 
         <Space>
+          <Input
+            allowClear
+            value={customerName}
+            onChange={(event) => setCustomerName(event.target.value)}
+            onPressEnter={onSearchCustomer}
+            placeholder="Search customer name"
+            className="w-[220px]"
+          />
+          <Button onClick={onSearchCustomer}>Search</Button>
           <Tag color="blue">Total: {total}</Tag>
           <Tag color="green">Paid (page): {paidCount}</Tag>
-          <Button icon={<ReloadOutlined />} onClick={() => void fetchBookings(page, perPage)}>Refresh</Button>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => void fetchBookings(page, perPage, customerName)}
+          >
+            Refresh
+          </Button>
         </Space>
       </div>
 
@@ -388,9 +503,18 @@ const Bookings = (): JSX.Element => {
         onOk={() => statusForm.submit()}
         confirmLoading={isStatusSubmitting}
         okText="Update"
+        centered
       >
-        <Form<StatusFormValues> layout="vertical" form={statusForm} onFinish={handleSubmitStatus}>
-          <Form.Item label="Booking Status" name="status" rules={[{ required: true, message: "Status wajib dipilih" }]}>
+        <Form<StatusFormValues>
+          layout="vertical"
+          form={statusForm}
+          onFinish={handleSubmitStatus}
+        >
+          <Form.Item
+            label="Booking Status"
+            name="status"
+            rules={[{ required: true, message: "Status wajib dipilih" }]}
+          >
             <Select
               options={[
                 { label: "Pending", value: "pending" },
@@ -401,7 +525,13 @@ const Bookings = (): JSX.Element => {
             />
           </Form.Item>
 
-          <Form.Item label="Payment Status" name="payment_status" rules={[{ required: true, message: "Payment status wajib dipilih" }]}>
+          <Form.Item
+            label="Payment Status"
+            name="payment_status"
+            rules={[
+              { required: true, message: "Payment status wajib dipilih" },
+            ]}
+          >
             <Select
               options={[
                 { label: "Unpaid", value: "unpaid" },
@@ -410,25 +540,6 @@ const Bookings = (): JSX.Element => {
                 { label: "Failed", value: "failed" },
               ]}
             />
-          </Form.Item>
-
-          <Form.Item label="Payment Method" name="payment_method" rules={[{ required: true, message: "Payment method wajib dipilih" }]}>
-            <Select
-              options={[
-                { label: "Pending", value: "pending" },
-                { label: "QRIS", value: "qris" },
-                { label: "Transfer", value: "transfer" },
-                { label: "Cash", value: "cash" },
-              ]}
-            />
-          </Form.Item>
-
-          <Form.Item label="Payment Reference" name="payment_reference">
-            <Input placeholder="TRX-123456" />
-          </Form.Item>
-
-          <Form.Item label="Notes" name="notes">
-            <Input.TextArea rows={3} placeholder="Verified by admin" />
           </Form.Item>
         </Form>
       </Modal>
@@ -440,28 +551,39 @@ const Bookings = (): JSX.Element => {
         onOk={() => rescheduleForm.submit()}
         confirmLoading={isRescheduleSubmitting}
         okText="Reschedule"
+        centered
       >
         <Form<RescheduleFormValues>
           layout="vertical"
           form={rescheduleForm}
           onFinish={handleSubmitReschedule}
         >
-          <Form.Item label="Booking Date" name="booking_date" rules={[{ required: true, message: "Tanggal booking wajib diisi" }]}>
-            <Input type="date" />
+          <Form.Item
+            label="Booking Date"
+            name="booking_date"
+            rules={[{ required: true, message: "Tanggal booking wajib diisi" }]}
+          >
+            <DatePicker className="!w-full" format="YYYY-MM-DD" />
           </Form.Item>
 
-          <Form.Item label="Start Time" name="start_time" rules={[{ required: true, message: "Jam mulai wajib diisi" }]}>
-            <Input type="time" />
-          </Form.Item>
-
-          <Form.Item label="Notes" name="notes">
-            <Input.TextArea rows={3} placeholder="Reschedule by admin request" />
+          <Form.Item
+            label="Start Time"
+            name="start_time"
+            rules={[{ required: true, message: "Jam mulai wajib diisi" }]}
+          >
+            <TimePicker className="!w-full" format="HH:mm" minuteStep={5} />
           </Form.Item>
         </Form>
       </Modal>
 
       {error ? (
-        <Alert type="error" showIcon className="!mb-4" message="Booking error" description={error} />
+        <Alert
+          type="error"
+          showIcon
+          className="!mb-4"
+          message="Booking error"
+          description={error}
+        />
       ) : null}
 
       <Table<Booking>

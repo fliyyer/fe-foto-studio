@@ -98,6 +98,7 @@ type BookingListApiResponse = ApiResponse<Booking[]> & {
 export interface BookingListParams {
   page?: number;
   per_page?: number;
+  customer_name?: string;
 }
 
 export const getAdminBookings = async (
@@ -116,9 +117,6 @@ export const getAdminBookings = async (
 export interface UpdateBookingStatusPayload {
   status: string;
   payment_status: string;
-  payment_method: string;
-  payment_reference?: string;
-  notes?: string;
 }
 
 export interface RescheduleBookingPayload {
@@ -131,12 +129,18 @@ export const updateBookingStatus = async (
   bookingId: number,
   payload: UpdateBookingStatusPayload,
 ): Promise<void> => {
-  await http.post<ApiResponse<unknown>>(`/admin/bookings/${bookingId}/status`, payload);
+  await http.post<ApiResponse<unknown>>(
+    `/admin/bookings/${bookingId}/status`,
+    payload,
+  );
 };
 
 export const rescheduleBooking = async (
   bookingId: number,
   payload: RescheduleBookingPayload,
 ): Promise<void> => {
-  await http.post<ApiResponse<unknown>>(`/admin/bookings/${bookingId}/reschedule`, payload);
+  await http.post<ApiResponse<unknown>>(
+    `/admin/bookings/${bookingId}/reschedule`,
+    payload,
+  );
 };

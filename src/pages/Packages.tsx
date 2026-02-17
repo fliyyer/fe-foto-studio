@@ -13,6 +13,7 @@ import {
   Popconfirm,
   Radio,
   Row,
+  Select,
   Skeleton,
   Space,
   Tag,
@@ -52,6 +53,7 @@ interface PackageFormValues {
   slot_duration: number;
   max_booking_per_slot: number;
   description: string;
+  background: string;
   max_person: number;
   is_active: 1 | 0;
 }
@@ -62,6 +64,11 @@ const currencyIDR = (value: number): string =>
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(value);
+
+const PACKAGE_CATEGORY_OPTIONS = [
+  { label: "Self Photo", value: "Self Photo" },
+  { label: "Photobooth", value: "Photobooth" },
+];
 
 // Packages page: select a studio first, then manage packages for that studio.
 const Packages = (): JSX.Element => {
@@ -77,7 +84,8 @@ const Packages = (): JSX.Element => {
   const [packages, setPackages] = useState<StudioPackage[]>([]);
   const [loadingPackages, setLoadingPackages] = useState<boolean>(false);
   const [packagesError, setPackagesError] = useState<string>("");
-  const [packageListSupported, setPackageListSupported] = useState<boolean>(true);
+  const [packageListSupported, setPackageListSupported] =
+    useState<boolean>(true);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isCreating, setIsCreating] = useState<boolean>(false);
@@ -85,9 +93,13 @@ const Packages = (): JSX.Element => {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  const [editingPackage, setEditingPackage] = useState<StudioPackage | null>(null);
+  const [editingPackage, setEditingPackage] = useState<StudioPackage | null>(
+    null,
+  );
   const [editUploadFiles, setEditUploadFiles] = useState<UploadFile[]>([]);
-  const [deletingPackageId, setDeletingPackageId] = useState<number | null>(null);
+  const [deletingPackageId, setDeletingPackageId] = useState<number | null>(
+    null,
+  );
 
   const selectedStudio = useMemo(
     () => studios.find((studio) => studio.id === selectedStudioId) ?? null,
@@ -174,7 +186,9 @@ const Packages = (): JSX.Element => {
     setEditUploadFiles([]);
   };
 
-  const handleCreatePackage = async (values: PackageFormValues): Promise<void> => {
+  const handleCreatePackage = async (
+    values: PackageFormValues,
+  ): Promise<void> => {
     if (!selectedStudioId) {
       notification.error({
         message: "Pilih studio dulu",
@@ -239,6 +253,7 @@ const Packages = (): JSX.Element => {
       slot_duration: pkg.slot_duration,
       max_booking_per_slot: pkg.max_booking_per_slot,
       description: pkg.description ?? "",
+      background: pkg.background ?? "",
       max_person: pkg.max_person,
       is_active: Number(pkg.is_active) === 1 ? 1 : 0,
     });
@@ -246,7 +261,9 @@ const Packages = (): JSX.Element => {
     setIsEditModalOpen(true);
   };
 
-  const handleUpdatePackage = async (values: PackageFormValues): Promise<void> => {
+  const handleUpdatePackage = async (
+    values: PackageFormValues,
+  ): Promise<void> => {
     if (!selectedStudioId || !editingPackage) return;
 
     try {
@@ -354,7 +371,8 @@ const Packages = (): JSX.Element => {
             Packages
           </Title>
           <Paragraph className="!mb-0 !text-brand-black/70">
-            Pilih studio terlebih dahulu, lalu tambahkan paket berdasarkan studio tersebut.
+            Pilih studio terlebih dahulu, lalu tambahkan paket berdasarkan
+            studio tersebut.
           </Paragraph>
         </div>
         <Space>
@@ -364,6 +382,7 @@ const Packages = (): JSX.Element => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
+            className="bg-brand-yellow text-black hover:!bg-brand-pink"
             onClick={() => setIsAddModalOpen(true)}
             disabled={!selectedStudioId}
           >
@@ -373,6 +392,7 @@ const Packages = (): JSX.Element => {
       </div>
 
       <Modal
+        width={750}
         title={`Tambah Paket${selectedStudio ? ` - ${selectedStudio.name}` : ""}`}
         open={isAddModalOpen}
         onCancel={closeAddModal}
@@ -389,62 +409,111 @@ const Packages = (): JSX.Element => {
             slot_duration: 1,
             max_booking_per_slot: 1,
             max_person: 1,
+            background: "",
           }}
         >
-          <Form.Item label="Name" name="name" rules={[{ required: true, message: "Nama paket wajib diisi" }]}>
+          <Form.Item
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: "Nama paket wajib diisi" }]}
+          >
             <Input placeholder="Paket Self Photo" />
           </Form.Item>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Form.Item label="Category" name="category" rules={[{ required: true, message: "Kategori wajib diisi" }]}>
-              <Input placeholder="Self Photo" />
+            <Form.Item
+              label="Category"
+              name="category"
+              rules={[{ required: true, message: "Kategori wajib diisi" }]}
+            >
+              <Select
+                placeholder="Pilih kategori"
+                options={PACKAGE_CATEGORY_OPTIONS}
+              />
             </Form.Item>
-            <Form.Item label="Price" name="price" rules={[{ required: true, message: "Harga wajib diisi" }]}> 
+            <Form.Item
+              label="Price"
+              name="price"
+              rules={[{ required: true, message: "Harga wajib diisi" }]}
+            >
               <InputNumber className="!w-full" min={0} placeholder="25000" />
             </Form.Item>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Form.Item label="Duration (minutes)" name="duration_minutes" rules={[{ required: true, message: "Durasi wajib diisi" }]}>
+            <Form.Item
+              label="Duration (minutes)"
+              name="duration_minutes"
+              rules={[{ required: true, message: "Durasi wajib diisi" }]}
+            >
               <InputNumber className="!w-full" min={1} />
             </Form.Item>
-            <Form.Item label="Slot Duration" name="slot_duration" rules={[{ required: true, message: "Slot duration wajib diisi" }]}>
+            <Form.Item
+              label="Slot Duration"
+              name="slot_duration"
+              rules={[{ required: true, message: "Slot duration wajib diisi" }]}
+            >
               <InputNumber className="!w-full" min={1} />
             </Form.Item>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Form.Item label="Max Booking Per Slot" name="max_booking_per_slot" rules={[{ required: true, message: "Wajib diisi" }]}>
+            <Form.Item
+              label="Max Booking Per Slot"
+              name="max_booking_per_slot"
+              rules={[{ required: true, message: "Wajib diisi" }]}
+            >
               <InputNumber className="!w-full" min={1} />
             </Form.Item>
-            <Form.Item label="Max Person" name="max_person" rules={[{ required: true, message: "Wajib diisi" }]}>
+            <Form.Item
+              label="Max Person"
+              name="max_person"
+              rules={[{ required: true, message: "Wajib diisi" }]}
+            >
               <InputNumber className="!w-full" min={1} />
             </Form.Item>
           </div>
 
-          <Form.Item label="Description" name="description" rules={[{ required: true, message: "Deskripsi wajib diisi" }]}>
-            <Input.TextArea rows={3} placeholder="Paket untuk 2-4 orang" />
-          </Form.Item>
-
-          <Form.Item label="Status" name="is_active" rules={[{ required: true, message: "Status wajib dipilih" }]}>
-            <Radio.Group
-              options={[
-                { label: "Active", value: 1 },
-                { label: "Inactive", value: 0 },
-              ]}
-            />
-          </Form.Item>
-
           <Form.Item
-            label="Thumbnail"
-            required
-            validateStatus={!uploadFiles.length ? "error" : ""}
-            help={!uploadFiles.length ? "Thumbnail wajib diupload" : ""}
+            label="Background"
+            name="background"
+            rules={[{ required: true, message: "Background wajib diisi" }]}
           >
-            <Upload {...uploadProps}>
-              <Button icon={<UploadOutlined />}>Pilih Gambar</Button>
-            </Upload>
+            <Input placeholder="Putih, Merah" />
           </Form.Item>
+          <Form.Item
+            label="Description"
+            name="description"
+            rules={[{ required: true, message: "Deskripsi wajib diisi" }]}
+          >
+            <Input.TextArea rows={2} placeholder="Paket untuk 2-4 orang" />
+          </Form.Item>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Form.Item
+              label="Status"
+              name="is_active"
+              rules={[{ required: true, message: "Status wajib dipilih" }]}
+            >
+              <Radio.Group
+                options={[
+                  { label: "Active", value: 1 },
+                  { label: "Inactive", value: 0 },
+                ]}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Thumbnail"
+              required
+              validateStatus={!uploadFiles.length ? "error" : ""}
+              help={!uploadFiles.length ? "Thumbnail wajib diupload" : ""}
+            >
+              <Upload {...uploadProps}>
+                <Button icon={<UploadOutlined />}>Pilih Gambar</Button>
+              </Upload>
+            </Form.Item>
+          </div>
         </Form>
       </Modal>
 
@@ -455,61 +524,110 @@ const Packages = (): JSX.Element => {
         onOk={() => editForm.submit()}
         confirmLoading={isUpdating}
         okText="Update"
+        width={750}
       >
         <Form<PackageFormValues>
           layout="vertical"
           form={editForm}
           onFinish={handleUpdatePackage}
         >
-          <Form.Item label="Name" name="name" rules={[{ required: true, message: "Nama paket wajib diisi" }]}>
+          <Form.Item
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: "Nama paket wajib diisi" }]}
+          >
             <Input />
           </Form.Item>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Form.Item label="Category" name="category" rules={[{ required: true, message: "Kategori wajib diisi" }]}>
-              <Input />
+            <Form.Item
+              label="Category"
+              name="category"
+              rules={[{ required: true, message: "Kategori wajib diisi" }]}
+            >
+              <Select
+                placeholder="Pilih kategori"
+                options={PACKAGE_CATEGORY_OPTIONS}
+              />
             </Form.Item>
-            <Form.Item label="Price" name="price" rules={[{ required: true, message: "Harga wajib diisi" }]}> 
+            <Form.Item
+              label="Price"
+              name="price"
+              rules={[{ required: true, message: "Harga wajib diisi" }]}
+            >
               <InputNumber className="!w-full" min={0} />
             </Form.Item>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Form.Item label="Duration (minutes)" name="duration_minutes" rules={[{ required: true, message: "Durasi wajib diisi" }]}>
+            <Form.Item
+              label="Duration (minutes)"
+              name="duration_minutes"
+              rules={[{ required: true, message: "Durasi wajib diisi" }]}
+            >
               <InputNumber className="!w-full" min={1} />
             </Form.Item>
-            <Form.Item label="Slot Duration" name="slot_duration" rules={[{ required: true, message: "Slot duration wajib diisi" }]}>
+            <Form.Item
+              label="Slot Duration"
+              name="slot_duration"
+              rules={[{ required: true, message: "Slot duration wajib diisi" }]}
+            >
               <InputNumber className="!w-full" min={1} />
             </Form.Item>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Form.Item label="Max Booking Per Slot" name="max_booking_per_slot" rules={[{ required: true, message: "Wajib diisi" }]}>
+            <Form.Item
+              label="Max Booking Per Slot"
+              name="max_booking_per_slot"
+              rules={[{ required: true, message: "Wajib diisi" }]}
+            >
               <InputNumber className="!w-full" min={1} />
             </Form.Item>
-            <Form.Item label="Max Person" name="max_person" rules={[{ required: true, message: "Wajib diisi" }]}>
+            <Form.Item
+              label="Max Person"
+              name="max_person"
+              rules={[{ required: true, message: "Wajib diisi" }]}
+            >
               <InputNumber className="!w-full" min={1} />
             </Form.Item>
           </div>
 
-          <Form.Item label="Description" name="description" rules={[{ required: true, message: "Deskripsi wajib diisi" }]}>
+          <Form.Item
+            label="Description"
+            name="description"
+            rules={[{ required: true, message: "Deskripsi wajib diisi" }]}
+          >
             <Input.TextArea rows={3} />
           </Form.Item>
-
-          <Form.Item label="Status" name="is_active" rules={[{ required: true, message: "Status wajib dipilih" }]}>
-            <Radio.Group
-              options={[
-                { label: "Active", value: 1 },
-                { label: "Inactive", value: 0 },
-              ]}
-            />
+          <Form.Item
+            label="Background"
+            name="background"
+            rules={[{ required: true, message: "Background wajib diisi" }]}
+          >
+            <Input placeholder="Putih, Merah" />
           </Form.Item>
 
-          <Form.Item label="Thumbnail (opsional, isi jika ingin ganti gambar)">
-            <Upload {...editUploadProps}>
-              <Button icon={<UploadOutlined />}>Ganti Gambar</Button>
-            </Upload>
-          </Form.Item>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Form.Item
+              label="Status"
+              name="is_active"
+              rules={[{ required: true, message: "Status wajib dipilih" }]}
+            >
+              <Radio.Group
+                options={[
+                  { label: "Active", value: 1 },
+                  { label: "Inactive", value: 0 },
+                ]}
+              />
+            </Form.Item>
+
+            <Form.Item label="Thumbnail (opsional, isi jika ingin ganti gambar)">
+              <Upload {...editUploadProps}>
+                <Button icon={<UploadOutlined />}>Ganti Gambar</Button>
+              </Upload>
+            </Form.Item>
+          </div>
         </Form>
       </Modal>
 
@@ -517,10 +635,17 @@ const Packages = (): JSX.Element => {
         <Col xs={24} lg={8}>
           <Card title="Studios" className="h-full">
             {studioError ? (
-              <Alert type="error" showIcon message="Gagal" description={studioError} />
+              <Alert
+                type="error"
+                showIcon
+                message="Gagal"
+                description={studioError}
+              />
             ) : null}
 
-            {loadingStudios ? <Skeleton active paragraph={{ rows: 6 }} /> : null}
+            {loadingStudios ? (
+              <Skeleton active paragraph={{ rows: 6 }} />
+            ) : null}
 
             {!loadingStudios && !studioError && studios.length === 0 ? (
               <Empty description="Belum ada studio" />
@@ -542,8 +667,12 @@ const Packages = (): JSX.Element => {
                       }`}
                     >
                       <div className="mb-1 flex items-center justify-between">
-                        <span className="font-semibold text-brand-black">{studio.name}</span>
-                        <Tag color={isSelected ? "cyan" : "default"}>{studio.city}</Tag>
+                        <span className="font-semibold text-brand-black">
+                          {studio.name}
+                        </span>
+                        <Tag color={isSelected ? "cyan" : "default"}>
+                          {studio.city}
+                        </Tag>
                       </div>
                       <p className="mb-1 text-xs text-brand-black/60">
                         <EnvironmentOutlined className="mr-1" />
@@ -551,7 +680,8 @@ const Packages = (): JSX.Element => {
                       </p>
                       <p className="mb-0 text-xs text-brand-black/60">
                         <ClockCircleOutlined className="mr-1" />
-                        {studio.open_time.slice(0, 5)} - {studio.close_time.slice(0, 5)}
+                        {studio.open_time.slice(0, 5)} -{" "}
+                        {studio.close_time.slice(0, 5)}
                       </p>
                     </button>
                   );
@@ -568,7 +698,9 @@ const Packages = (): JSX.Element => {
               <div className="flex items-center gap-2">
                 <ShopOutlined />
                 <span>
-                  {selectedStudio ? `Packages - ${selectedStudio.name}` : "Packages"}
+                  {selectedStudio
+                    ? `Packages - ${selectedStudio.name}`
+                    : "Packages"}
                 </span>
               </div>
             }
@@ -584,7 +716,9 @@ const Packages = (): JSX.Element => {
               ) : null
             }
           >
-            {!selectedStudioId ? <Empty description="Pilih studio terlebih dahulu" /> : null}
+            {!selectedStudioId ? (
+              <Empty description="Pilih studio terlebih dahulu" />
+            ) : null}
 
             {selectedStudioId && packagesError ? (
               <Alert
@@ -610,11 +744,17 @@ const Packages = (): JSX.Element => {
               <Skeleton active paragraph={{ rows: 6 }} />
             ) : null}
 
-            {selectedStudioId && !loadingPackages && packageListSupported && packages.length === 0 ? (
+            {selectedStudioId &&
+            !loadingPackages &&
+            packageListSupported &&
+            packages.length === 0 ? (
               <Empty description="Belum ada paket untuk studio ini" />
             ) : null}
 
-            {selectedStudioId && !loadingPackages && packageListSupported && packages.length > 0 ? (
+            {selectedStudioId &&
+            !loadingPackages &&
+            packageListSupported &&
+            packages.length > 0 ? (
               <Row gutter={[12, 12]}>
                 {packages.map((pkg) => (
                   <Col key={pkg.id} xs={24} md={12}>
@@ -631,20 +771,34 @@ const Packages = (): JSX.Element => {
                       }
                     >
                       <div className="mb-2 flex items-start justify-between gap-2">
-                        <span className="font-semibold text-brand-black">{pkg.name}</span>
-                        <Tag color={Number(pkg.is_active) === 1 ? "green" : "default"}>
+                        <span className="font-semibold text-brand-black">
+                          {pkg.name}
+                        </span>
+                        <Tag
+                          color={
+                            Number(pkg.is_active) === 1 ? "green" : "default"
+                          }
+                        >
                           {Number(pkg.is_active) === 1 ? "Active" : "Inactive"}
                         </Tag>
                       </div>
 
-                      <p className="mb-1 text-xs text-brand-black/60">{pkg.category}</p>
-                      <p className="mb-1 text-sm font-semibold text-brand-black">{currencyIDR(pkg.price)}</p>
+                      <p className="mb-1 text-xs text-brand-black/60">
+                        {pkg.category}
+                      </p>
+                      <p className="mb-1 text-sm font-semibold text-brand-black">
+                        {currencyIDR(pkg.price)}
+                      </p>
                       <p className="mb-0 text-xs text-brand-black/60">
-                        Durasi {pkg.duration_minutes} menit • Max {pkg.max_person} orang
+                        Durasi {pkg.duration_minutes} menit • Max{" "}
+                        {pkg.max_person} orang
                       </p>
 
                       <div className="mt-3 flex justify-end gap-2">
-                        <Button icon={<EditOutlined />} onClick={() => openEditModal(pkg)}>
+                        <Button
+                          icon={<EditOutlined />}
+                          onClick={() => openEditModal(pkg)}
+                        >
                           Edit
                         </Button>
                         <Popconfirm

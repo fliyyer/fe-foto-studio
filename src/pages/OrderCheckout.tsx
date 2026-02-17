@@ -156,6 +156,23 @@ const formatCurrencyIDR = (value: number | string): string =>
 const formatDate = (value: string): string =>
   dayjs(value).locale("id").format("D MMMM YYYY");
 
+const normalizeBackgroundValues = (background: unknown): string[] => {
+  if (Array.isArray(background)) {
+    return background
+      .map((item) => String(item).trim())
+      .filter((item, index, arr) => Boolean(item) && arr.indexOf(item) === index);
+  }
+
+  if (typeof background === "string") {
+    return background
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item, index, arr) => Boolean(item) && arr.indexOf(item) === index);
+  }
+
+  return [];
+};
+
 const resolvePaymentUrl = (result: {
   payment?: { payment_url?: string };
   data?: unknown;
@@ -252,6 +269,14 @@ const OrderCheckout = (): JSX.Element => {
     PAYMENT_METHOD_OPTIONS.find(
       (method) => method.value === selectedPaymentMethod,
     )?.label ?? "QRIS";
+  const backgroundOptions = useMemo(() => {
+    const packageBackground = (pkgDetail as unknown as { background?: unknown } | null)
+      ?.background;
+    return normalizeBackgroundValues(packageBackground).map((value) => ({
+      value,
+      label: value,
+    }));
+  }, [pkgDetail]);
 
   const activeAddons = useMemo(
     () =>
@@ -483,12 +508,22 @@ const OrderCheckout = (): JSX.Element => {
   useEffect(() => {
     form.setFieldsValue({
       payment_method: "qris",
-      background: "Putih",
       allow_social_upload: "Ngga deh",
     });
     void fetchPackageDetail();
     void fetchActiveVouchers();
   }, [studioId, packageId]);
+
+  useEffect(() => {
+    if (backgroundOptions.length === 0) return;
+    const currentBackground = form.getFieldValue("background") as string | undefined;
+    const isCurrentValid = backgroundOptions.some(
+      (option) => option.value === currentBackground,
+    );
+    if (!isCurrentValid) {
+      form.setFieldValue("background", backgroundOptions[0].value);
+    }
+  }, [backgroundOptions, form]);
 
   useEffect(() => {
     if (!trackingInvoice || showSuccessModal) return;
@@ -797,12 +832,13 @@ const OrderCheckout = (): JSX.Element => {
                     ]}
                   >
                     <Select
-                      options={[
-                        { value: "Putih", label: "Putih" },
-                        { value: "Abu-abu", label: "Abu-abu" },
-                        { value: "Pink", label: "Pink" },
-                        { value: "Biru", label: "Biru" },
-                      ]}
+                      placeholder={
+                        backgroundOptions.length > 0
+                          ? "Pilih background"
+                          : "Background tidak tersedia"
+                      }
+                      options={backgroundOptions}
+                      disabled={backgroundOptions.length === 0}
                     />
                   </Form.Item>
 

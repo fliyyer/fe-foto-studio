@@ -13,6 +13,7 @@ import {
   Row,
   Skeleton,
   Tag,
+  TimePicker,
   Typography,
   Upload,
 } from "antd";
@@ -27,6 +28,7 @@ import {
 } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 import axios from "axios";
+import dayjs, { type Dayjs } from "dayjs";
 import { useNavigate } from "react-router-dom";
 import {
   createStudio,
@@ -43,8 +45,8 @@ interface CreateStudioFormValues {
   name: string;
   address: string;
   city: string;
-  open_time: string;
-  close_time: string;
+  open_time: Dayjs;
+  close_time: Dayjs;
 }
 
 // Studio listing page for /admin/studios.
@@ -115,6 +117,8 @@ const Studios = (): JSX.Element => {
       setIsSubmitting(true);
       await createStudio({
         ...values,
+        open_time: values.open_time.format("HH:mm"),
+        close_time: values.close_time.format("HH:mm"),
         thumbnail: selectedFile as File,
       });
       notification.success({
@@ -164,8 +168,8 @@ const Studios = (): JSX.Element => {
       name: studio.name,
       address: studio.address,
       city: studio.city,
-      open_time: studio.open_time.slice(0, 5),
-      close_time: studio.close_time.slice(0, 5),
+      open_time: dayjs(studio.open_time.slice(0, 5), "HH:mm"),
+      close_time: dayjs(studio.close_time.slice(0, 5), "HH:mm"),
     });
     setEditUploadFiles([]);
     setIsEditModalOpen(true);
@@ -187,6 +191,8 @@ const Studios = (): JSX.Element => {
       setIsUpdating(true);
       await updateStudio(editingStudio.id, {
         ...values,
+        open_time: values.open_time.format("HH:mm"),
+        close_time: values.close_time.format("HH:mm"),
         thumbnail: editUploadFiles[0]?.originFileObj as File | undefined,
       });
       notification.success({
@@ -279,6 +285,7 @@ const Studios = (): JSX.Element => {
         <div className="flex gap-2">
           <Button
             type="primary"
+            className="bg-brand-yellow text-black hover:!bg-brand-pink"
             icon={<PlusOutlined />}
             onClick={() => setIsAddModalOpen(true)}
           >
@@ -334,14 +341,22 @@ const Studios = (): JSX.Element => {
               name="open_time"
               rules={[{ required: true, message: "Jam buka wajib diisi" }]}
             >
-              <Input type="time" />
+              <TimePicker
+                className="!w-full"
+                format="HH:mm"
+                minuteStep={5}
+              />
             </Form.Item>
             <Form.Item
               label="Close Time"
               name="close_time"
               rules={[{ required: true, message: "Jam tutup wajib diisi" }]}
             >
-              <Input type="time" />
+              <TimePicker
+                className="!w-full"
+                format="HH:mm"
+                minuteStep={5}
+              />
             </Form.Item>
           </div>
 
@@ -402,14 +417,22 @@ const Studios = (): JSX.Element => {
               name="open_time"
               rules={[{ required: true, message: "Jam buka wajib diisi" }]}
             >
-              <Input type="time" />
+              <TimePicker
+                className="!w-full"
+                format="HH:mm"
+                minuteStep={5}
+              />
             </Form.Item>
             <Form.Item
               label="Close Time"
               name="close_time"
               rules={[{ required: true, message: "Jam tutup wajib diisi" }]}
             >
-              <Input type="time" />
+              <TimePicker
+                className="!w-full"
+                format="HH:mm"
+                minuteStep={5}
+              />
             </Form.Item>
           </div>
 
@@ -457,24 +480,26 @@ const Studios = (): JSX.Element => {
             return (
               <Col key={studio.id} xs={24} md={12} xl={8}>
                 <Card
-                  className="overflow-hidden border-brand-black/10 shadow-sm transition hover:shadow-md"
+                  className="group overflow-hidden border-2 border-brand-black bg-white shadow-[4px_4px_0_#000] transition hover:-translate-y-1 hover:shadow-[8px_8px_0_#000]"
                   bodyStyle={{ padding: 16 }}
                   cover={
                     imageUrl && !imageBroken ? (
-                      <img
-                        src={imageUrl}
-                        alt={studio.name}
-                        className="h-48 w-full object-cover"
-                        onError={() =>
-                          setBrokenImages((prev) => ({
-                            ...prev,
-                            [studio.id]: true,
-                          }))
-                        }
-                      />
+                      <div className="relative h-64 w-full overflow-hidden border-b-2 border-brand-black">
+                        <img
+                          src={imageUrl}
+                          alt={studio.name}
+                          className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-105"
+                          onError={() =>
+                            setBrokenImages((prev) => ({
+                              ...prev,
+                              [studio.id]: true,
+                            }))
+                          }
+                        />
+                      </div>
                     ) : (
-                      <div className="flex h-48 items-center justify-center bg-gradient-to-br from-cyan-100 via-white to-pink-100">
-                        <span className="text-lg font-semibold text-brand-black/70">
+                      <div className="flex h-64 items-center justify-center border-b-2 border-brand-black bg-brand-yellow/30">
+                        <span className="px-4 text-center text-lg font-semibold text-brand-black/70">
                           {studio.name}
                         </span>
                       </div>

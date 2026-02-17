@@ -11,10 +11,9 @@ import {
   Table,
   Tag,
   Typography,
-  notification,
 } from "antd";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
-import { CopyOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
+import { ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import axios from "axios";
 import dayjs, { type Dayjs } from "dayjs";
 import { useNavigate } from "react-router-dom";
@@ -55,7 +54,7 @@ const Payments = (): JSX.Element => {
   const [error, setError] = useState<string>("");
 
   const [page, setPage] = useState<number>(1);
-  const [perPage, setPerPage] = useState<number>(15);
+  const [perPage, setPerPage] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
 
   const [searchInput, setSearchInput] = useState<string>("");
@@ -127,15 +126,6 @@ const Payments = (): JSX.Element => {
     void fetchPayments(pagination.current ?? 1, pagination.pageSize ?? perPage);
   };
 
-  const copyInvoice = async (invoice: string): Promise<void> => {
-    try {
-      await navigator.clipboard.writeText(invoice);
-      notification.success({ message: `Invoice ${invoice} berhasil disalin` });
-    } catch {
-      notification.error({ message: "Gagal menyalin invoice" });
-    }
-  };
-
   useEffect(() => {
     void fetchPayments(1, perPage);
   }, []);
@@ -153,24 +143,21 @@ const Payments = (): JSX.Element => {
       render: (_, record) => (
         <Space>
           <Text code>{record.transaction_id}</Text>
-          <Button
-            size="small"
-            icon={<CopyOutlined />}
-            onClick={() => void copyInvoice(record.transaction_id)}
-          >
-            Copy
-          </Button>
         </Space>
       ),
     },
     {
-      title: "Customer",
+      title: "Pelanggan",
       key: "customer",
       width: 200,
       render: (_, record) => (
         <div>
-          <p className="mb-0 font-medium text-brand-black">{record.booking.customer.name}</p>
-          <p className="mb-0 text-xs text-brand-black/60">{record.booking.customer.email}</p>
+          <p className="mb-0 font-medium text-brand-black">
+            {record.booking.customer.name}
+          </p>
+          <p className="mb-0 text-xs text-brand-black/60">
+            {record.booking.customer.email}
+          </p>
         </div>
       ),
     },
@@ -183,19 +170,25 @@ const Payments = (): JSX.Element => {
           <p className="mb-0 text-sm font-medium text-brand-black">
             {record.booking.package.studio.name}
           </p>
-          <p className="mb-0 text-xs text-brand-black/60">{record.booking.package.name}</p>
+          <p className="mb-0 text-xs text-brand-black/60">
+            {record.booking.package.name}
+          </p>
         </div>
       ),
     },
     {
-      title: "Method",
+      title: "Metode",
       dataIndex: "method",
       key: "method",
-      width: 150,
-      render: (value: string) => <Tag color="#00bfc3">{value}</Tag>,
+      width: 100,
+      render: (value: string) => (
+        <Tag className="uppercase" color="#00bfc3">
+          {value}
+        </Tag>
+      ),
     },
     {
-      title: "Amount",
+      title: "Nominal",
       dataIndex: "amount",
       key: "amount",
       align: "right",
@@ -203,58 +196,60 @@ const Payments = (): JSX.Element => {
       render: (value: number) => <Text strong>{formatCurrencyIDR(value)}</Text>,
     },
     {
-      title: "Payment Status",
+      title: "Status Pembayaran",
       dataIndex: "payment_status",
       key: "payment_status",
       width: 160,
-      render: (value: string) => <Tag color={tagColor(value)}>{value}</Tag>,
+      render: (value: string) => (
+        <Tag className="uppercase" color={tagColor(value)}>
+          {value}
+        </Tag>
+      ),
     },
     {
-      title: "Paid At",
+      title: "Dibayar Pada",
       dataIndex: "paid_at",
       key: "paid_at",
       width: 170,
       render: (value: string | null) => formatDateTime(value),
-    },
-    {
-      title: "Created At",
-      dataIndex: "created_at",
-      key: "created_at",
-      width: 170,
-      render: (value: string) => formatDateTime(value),
     },
   ];
 
   const expandedRowRender = (record: PaymentHistoryItem): JSX.Element => (
     <div className="space-y-3">
       <Descriptions size="small" bordered column={2}>
-        <Descriptions.Item label="Booking ID">{record.booking_id}</Descriptions.Item>
-        <Descriptions.Item label="Transaction ID">{record.transaction_id}</Descriptions.Item>
-        <Descriptions.Item label="Booking Status">{record.booking.status}</Descriptions.Item>
-        <Descriptions.Item label="Booking Payment Status">{record.booking.payment_status}</Descriptions.Item>
-        <Descriptions.Item label="Booking Date">
+        <Descriptions.Item label="ID Booking">
+          {record.booking_id}
+        </Descriptions.Item>
+        <Descriptions.Item label="ID Transaksi">
+          {record.transaction_id}
+        </Descriptions.Item>
+        <Descriptions.Item label="Status Booking">
+          {record.booking.status}
+        </Descriptions.Item>
+        <Descriptions.Item label="Status Bayar Booking">
+          {record.booking.payment_status}
+        </Descriptions.Item>
+        <Descriptions.Item label="Tanggal Booking">
           {formatDateTime(record.booking.booking_date)}
         </Descriptions.Item>
-        <Descriptions.Item label="Time Slot">
-          {record.booking.start_time.slice(0, 5)} - {record.booking.end_time.slice(0, 5)}
+        <Descriptions.Item label="Jam Sesi">
+          {record.booking.start_time.slice(0, 5)} -{" "}
+          {record.booking.end_time.slice(0, 5)}
         </Descriptions.Item>
         <Descriptions.Item label="Subtotal">
           {formatCurrencyIDR(record.booking.subtotal_price)}
         </Descriptions.Item>
-        <Descriptions.Item label="Discount">
+        <Descriptions.Item label="Diskon">
           {formatCurrencyIDR(record.booking.discount_amount)}
         </Descriptions.Item>
         <Descriptions.Item label="Total">
           {formatCurrencyIDR(record.booking.total_price)}
         </Descriptions.Item>
-        <Descriptions.Item label="Payment Method">{record.booking.payment_method}</Descriptions.Item>
+        <Descriptions.Item label="Metode Pembayaran">
+          {record.booking.payment_method}
+        </Descriptions.Item>
       </Descriptions>
-
-      <Card size="small" title="Raw Response">
-        <pre className="mb-0 overflow-x-auto whitespace-pre-wrap text-xs text-brand-black/70">
-          {record.raw_response || "-"}
-        </pre>
-      </Card>
     </div>
   );
 
@@ -263,7 +258,7 @@ const Payments = (): JSX.Element => {
       <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <Title level={2} className="!mb-1 !text-brand-black">
-            Payments History
+            Riwayat Pembayaran
           </Title>
           <Paragraph className="!mb-0 !text-brand-black/70">
             Riwayat transaksi pembayaran booking pelanggan.
@@ -271,7 +266,10 @@ const Payments = (): JSX.Element => {
         </div>
 
         <Space>
-          <Button icon={<ReloadOutlined />} onClick={() => void fetchPayments(page, perPage)}>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => void fetchPayments(page, perPage)}
+          >
             Refresh
           </Button>
         </Space>
@@ -289,14 +287,16 @@ const Payments = (): JSX.Element => {
 
           <Select
             value={paymentStatus || undefined}
-            onChange={(value: string | undefined) => setPaymentStatus(value ?? "")}
-            placeholder="Filter status"
+            onChange={(value: string | undefined) =>
+              setPaymentStatus(value ?? "")
+            }
+            placeholder="Filter status pembayaran"
             allowClear
             options={[
-              { value: "pending", label: "Pending" },
-              { value: "completed", label: "Completed" },
-              { value: "failed", label: "Failed" },
-              { value: "expired", label: "Expired" },
+              { value: "pending", label: "Menunggu" },
+              { value: "completed", label: "Selesai" },
+              { value: "failed", label: "Gagal" },
+              { value: "expired", label: "Kedaluwarsa" },
             ]}
           />
 
@@ -309,8 +309,12 @@ const Payments = (): JSX.Element => {
 
           <Space>
             <Button onClick={resetFilters}>Reset</Button>
-            <Button type="primary" onClick={applyFilters}>
-              Apply
+            <Button
+              type="primary"
+              className="bg-brand-yellow text-black hover:!bg-brand-pink"
+              onClick={applyFilters}
+            >
+              Terapkan
             </Button>
           </Space>
         </div>
@@ -321,16 +325,26 @@ const Payments = (): JSX.Element => {
           type="error"
           showIcon
           className="!mb-4"
-          message="Payments error"
+          message="Error pembayaran"
           description={error}
         />
       ) : null}
 
       <Card className="mb-4 border !border-brand-black/10">
         <div className="flex flex-wrap gap-6 text-sm">
-          <span className="text-brand-black/70">Total transaksi (page): <strong className="text-brand-black">{payments.length}</strong></span>
-          <span className="text-brand-black/70">Nominal (page): <strong className="text-brand-black">{formatCurrencyIDR(totalAmountPage)}</strong></span>
-          <span className="text-brand-black/70">Total data: <strong className="text-brand-black">{total}</strong></span>
+          <span className="text-brand-black/70">
+            Total transaksi (page):{" "}
+            <strong className="text-brand-black">{payments.length}</strong>
+          </span>
+          <span className="text-brand-black/70">
+            Nominal (page):{" "}
+            <strong className="text-brand-black">
+              {formatCurrencyIDR(totalAmountPage)}
+            </strong>
+          </span>
+          <span className="text-brand-black/70">
+            Total data: <strong className="text-brand-black">{total}</strong>
+          </span>
         </div>
       </Card>
 

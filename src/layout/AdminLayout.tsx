@@ -58,7 +58,7 @@ const AdminLayout = (): JSX.Element => {
     <Layout className="h-screen overflow-hidden bg-brand-yellow/20">
       <Sider
         theme="light"
-        width={240}
+        width={280}
         breakpoint="lg"
         collapsedWidth="0"
         className="h-screen overflow-y-auto border-r-4 border-brand-black"

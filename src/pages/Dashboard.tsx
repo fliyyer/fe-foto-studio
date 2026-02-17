@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  CalendarOutlined,
+  DollarOutlined,
+  FundOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
+import {
   Alert,
   Card,
   Col,
@@ -9,6 +15,7 @@ import {
   Select,
   Skeleton,
   Statistic,
+  Tag,
   Typography,
 } from "antd";
 import axios from "axios";
@@ -20,6 +27,20 @@ import {
 import { clearAuthSession, getAuthEmail } from "../utils/auth";
 
 const { Title, Paragraph } = Typography;
+const MONTH_OPTIONS = [
+  { value: 1, label: "Januari" },
+  { value: 2, label: "Februari" },
+  { value: 3, label: "Maret" },
+  { value: 4, label: "April" },
+  { value: 5, label: "Mei" },
+  { value: 6, label: "Juni" },
+  { value: 7, label: "Juli" },
+  { value: 8, label: "Agustus" },
+  { value: 9, label: "September" },
+  { value: 10, label: "Oktober" },
+  { value: 11, label: "November" },
+  { value: 12, label: "Desember" },
+];
 
 const formatCurrencyIDR = (value: number): string =>
   new Intl.NumberFormat("id-ID", {
@@ -129,7 +150,7 @@ const Dashboard = (): JSX.Element => {
         API.
       </Paragraph>
 
-      <Card className="!mb-4">
+      <Card className="!mb-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
           <div className="min-w-[180px]">
             <p className="mb-1 text-xs font-medium text-brand-black/60">
@@ -139,20 +160,7 @@ const Dashboard = (): JSX.Element => {
               value={selectedMonth}
               onChange={(value) => setSelectedMonth(value)}
               className="w-full"
-              options={[
-                { value: 1, label: "January" },
-                { value: 2, label: "February" },
-                { value: 3, label: "March" },
-                { value: 4, label: "April" },
-                { value: 5, label: "May" },
-                { value: 6, label: "June" },
-                { value: 7, label: "July" },
-                { value: 8, label: "August" },
-                { value: 9, label: "September" },
-                { value: 10, label: "October" },
-                { value: 11, label: "November" },
-                { value: 12, label: "December" },
-              ]}
+              options={MONTH_OPTIONS}
             />
           </div>
           <div className="min-w-[180px]">
@@ -192,6 +200,7 @@ const Dashboard = (): JSX.Element => {
                   title="Booking Hari Ini"
                   value={summary?.total_booking_today ?? 0}
                   valueStyle={{ color: "#00bfc3" }}
+                  prefix={<TeamOutlined />}
                 />
               </Card>
             </Col>
@@ -202,6 +211,7 @@ const Dashboard = (): JSX.Element => {
                   title="Booking Bulan Ini"
                   value={summary?.total_booking_month ?? 0}
                   valueStyle={{ color: "#000000" }}
+                  prefix={<CalendarOutlined />}
                 />
               </Card>
             </Col>
@@ -212,6 +222,7 @@ const Dashboard = (): JSX.Element => {
                   title="Revenue Hari Ini"
                   value={formatCurrencyIDR(summary?.total_revenue_today ?? 0)}
                   valueStyle={{ color: "#ffd33b" }}
+                  prefix={<DollarOutlined />}
                 />
               </Card>
             </Col>
@@ -222,6 +233,7 @@ const Dashboard = (): JSX.Element => {
                   title="Revenue Bulan Ini"
                   value={formatCurrencyIDR(summary?.total_revenue_month ?? 0)}
                   valueStyle={{ color: "#ff2273" }}
+                  prefix={<FundOutlined />}
                 />
               </Card>
             </Col>
@@ -255,15 +267,31 @@ const Dashboard = (): JSX.Element => {
               <Card
                 title={`Progress Booking (${monthLabel(summary?.month ?? 1, summary?.year ?? 2026)})`}
               >
-                <Progress
-                  type="circle"
-                  percent={bookingProgress}
-                  strokeColor="#00bfc3"
-                  format={(percent) => `${percent ?? 0}%`}
-                />
+                <div className="mb-4 flex justify-center">
+                  <Progress
+                    type="dashboard"
+                    percent={bookingProgress}
+                    strokeColor="#00bfc3"
+                    trailColor="#ffd33b33"
+                    format={(percent) => `${percent ?? 0}%`}
+                  />
+                </div>
                 <Paragraph className="!mb-0 !mt-4 !text-brand-black/70">
                   Rasio booking hari ini terhadap total booking bulan berjalan.
                 </Paragraph>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-brand-black/70">
+                    <span>Booking Hari Ini</span>
+                    <span className="font-semibold text-brand-black">
+                      {summary?.total_booking_today ?? 0}
+                    </span>
+                  </div>
+                  <Progress
+                    percent={bookingProgress}
+                    strokeColor="#ff2273"
+                    showInfo={false}
+                  />
+                </div>
               </Card>
             </Col>
           </Row>
