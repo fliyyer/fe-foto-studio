@@ -15,7 +15,6 @@ import {
   Select,
   Skeleton,
   Statistic,
-  Tag,
   Typography,
 } from "antd";
 import axios from "axios";
