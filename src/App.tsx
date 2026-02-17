@@ -9,6 +9,7 @@ import OrderCheckout from "./pages/OrderCheckout";
 import OrderPackageDetail from "./pages/OrderPackageDetail";
 import OrderPackageSelection from "./pages/OrderPackageSelection";
 import OrderStudioSelection from "./pages/OrderStudioSelection";
+import Payments from "./pages/Payments";
 import Packages from "./pages/Packages";
 import Vouchers from "./pages/Vouchers";
 import { getAuthToken } from "./utils/auth";
@@ -40,6 +41,7 @@ const App = (): JSX.Element => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="bookings" element={<Bookings />} />
+          <Route path="payments" element={<Payments />} />
           <Route path="vouchers" element={<Vouchers />} />
           <Route path="studios" element={<Studios />} />
           <Route path="packages" element={<Packages />} />
