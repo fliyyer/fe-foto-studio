@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./layout/AdminLayout";
 import Addons from "./pages/Addons";
@@ -15,12 +16,41 @@ import Vouchers from "./pages/Vouchers";
 import { getAuthToken } from "./utils/auth";
 import Studios from "./pages/Studios";
 
+const APP_NAME = "Equinox Self Studio";
+
+const resolvePageTitle = (pathname: string): string => {
+  if (pathname === "/" || pathname === "/order") return "Pilih Studio";
+  if (pathname === "/order/packages") return "Pilih Paket";
+  if (/^\/order\/studios\/\d+\/packages\/\d+$/.test(pathname)) {
+    return "Detail Paket";
+  }
+  if (/^\/order\/studios\/\d+\/packages\/\d+\/checkout$/.test(pathname)) {
+    return "Checkout";
+  }
+  if (pathname === "/login") return "Login Admin";
+  if (pathname === "/admin/dashboard") return "Dashboard";
+  if (pathname === "/admin/bookings") return "Bookings";
+  if (pathname === "/admin/payments") return "Payments";
+  if (pathname === "/admin/vouchers") return "Vouchers";
+  if (pathname === "/admin/studios") return "Studios";
+  if (pathname === "/admin/packages") return "Packages";
+  if (pathname === "/admin/addons") return "Add-ons";
+
+  return "Admin Panel";
+};
+
 // Route tree:
 // - /login is public
 // - /admin/* is protected and wrapped by ProtectedRoute
 // - unknown paths redirect based on auth state
 const App = (): JSX.Element => {
   const token = getAuthToken();
+  const location = useLocation();
+
+  useEffect(() => {
+    const pageTitle = resolvePageTitle(location.pathname);
+    document.title = `${pageTitle} | ${APP_NAME}`;
+  }, [location.pathname]);
 
   return (
     <Routes>
@@ -52,9 +82,7 @@ const App = (): JSX.Element => {
 
       <Route
         path="*"
-        element={
-          <Navigate to={token ? "/admin/dashboard" : "/"} replace />
-        }
+        element={<Navigate to={token ? "/admin/dashboard" : "/"} replace />}
       />
     </Routes>
   );
