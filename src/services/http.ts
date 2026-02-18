@@ -1,9 +1,9 @@
 import axios from "axios";
 import { getAuthHeader } from "../utils/auth";
 
-const defaultApiBaseUrl = "http://127.0.0.1:8000/api";
+const defaultApiBaseUrl = "/api";
 
-// Central API config. Can be overridden using VITE_API_BASE_URL.
+// Central API config from .env (Vite: VITE_API_BASE_URL).
 export const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() ||
   defaultApiBaseUrl;
