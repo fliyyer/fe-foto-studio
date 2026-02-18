@@ -33,13 +33,13 @@ jobs:
       - name: Deploy to FTP server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: 203.175.9.67
+          server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           protocol: ftps
           local-dir: ./dist/
-          server-dir: public_html/
+          server-dir: /
           exclude: |
             **/.git*
             **/.git*/**
