@@ -1,14 +1,14 @@
 import { Button, Image, Layout, Menu, theme } from "antd";
 import type { MenuProps } from "antd";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { clearAuthSession, getAuthEmail } from "../utils/auth";
+import { clearAuthSession, getAuthEmail, getAuthRole } from "../utils/auth";
 import Logo from "../images/logo.png";
 
 const { Header, Sider, Content } = Layout;
 
 type MenuItem = Required<MenuProps>["items"][number];
 
-const menuItems: MenuItem[] = [
+const adminMenuItems: MenuItem[] = [
   {
     key: "/admin/dashboard",
     label: <Link to="/admin/dashboard">Dashboard</Link>,
@@ -39,11 +39,19 @@ const menuItems: MenuItem[] = [
   },
 ];
 
+const cashierMenuItems: MenuItem[] = adminMenuItems.filter((item) =>
+  ["/admin/dashboard", "/admin/bookings", "/admin/payments"].includes(
+    item?.key?.toString() ?? "",
+  ),
+);
+
 // Main admin shell with sidebar navigation and logout action.
 const AdminLayout = (): JSX.Element => {
   const location = useLocation();
   const navigate = useNavigate();
   const email = getAuthEmail();
+  const role = getAuthRole();
+  const menuItems = role === "cashier" ? cashierMenuItems : adminMenuItems;
 
   const {
     token: { colorBgContainer, borderRadiusLG },

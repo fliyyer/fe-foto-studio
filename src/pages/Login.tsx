@@ -25,6 +25,7 @@ const Login = (): JSX.Element => {
         loginResult.accessToken,
         loginResult.email ?? values.email,
         loginResult.tokenType,
+        loginResult.role,
       );
       notification.success({
         message: "Login Success!",

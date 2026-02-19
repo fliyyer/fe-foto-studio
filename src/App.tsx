@@ -13,7 +13,7 @@ import OrderStudioSelection from "./pages/OrderStudioSelection";
 import Payments from "./pages/Payments";
 import Packages from "./pages/Packages";
 import Vouchers from "./pages/Vouchers";
-import { getAuthToken } from "./utils/auth";
+import { getAuthRole, getAuthToken } from "./utils/auth";
 import Studios from "./pages/Studios";
 
 const APP_NAME = "Equinox Self Studio";
@@ -45,6 +45,7 @@ const resolvePageTitle = (pathname: string): string => {
 // - unknown paths redirect based on auth state
 const App = (): JSX.Element => {
   const token = getAuthToken();
+  const role = getAuthRole();
   const location = useLocation();
 
   useEffect(() => {
@@ -67,22 +68,33 @@ const App = (): JSX.Element => {
       />
       <Route path="/login" element={<Login />} />
 
-      <Route element={<ProtectedRoute />}>
+      <Route element={<ProtectedRoute allowedRoles={["admin", "cashier"]} />}>
         <Route path="/admin" element={<AdminLayout />}>
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="bookings" element={<Bookings />} />
-          <Route path="payments" element={<Payments />} />
-          <Route path="vouchers" element={<Vouchers />} />
-          <Route path="studios" element={<Studios />} />
-          <Route path="packages" element={<Packages />} />
-          <Route path="addons" element={<Addons />} />
+          <Route element={<ProtectedRoute allowedRoles={["admin", "cashier"]} />}>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="bookings" element={<Bookings />} />
+            <Route path="payments" element={<Payments />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+            <Route path="vouchers" element={<Vouchers />} />
+            <Route path="studios" element={<Studios />} />
+            <Route path="packages" element={<Packages />} />
+            <Route path="addons" element={<Addons />} />
+          </Route>
+
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
       </Route>
 
       <Route
         path="*"
-        element={<Navigate to={token ? "/admin/dashboard" : "/"} replace />}
+        element={
+          <Navigate
+            to={token && role ? "/admin/dashboard" : "/"}
+            replace
+          />
+        }
       />
     </Routes>
   );
