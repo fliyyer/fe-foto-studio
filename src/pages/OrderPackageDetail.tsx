@@ -202,7 +202,7 @@ const OrderPackageDetail = (): JSX.Element => {
                 </p>
                 <p className="mb-0 flex items-center gap-2">
                   <FileImageOutlined className="!text-brand-black/70" />
-                  Free ALl Soft File
+                  Free ALL Soft File
                 </p>
               </div>
             </Card>
