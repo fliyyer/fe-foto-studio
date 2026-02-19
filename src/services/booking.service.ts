@@ -99,6 +99,11 @@ export interface BookingListParams {
   page?: number;
   per_page?: number;
   customer_name?: string;
+  search?: string;
+  studio_id?: number;
+  package_id?: number;
+  studio_name?: string;
+  package_name?: string;
 }
 
 export const getAdminBookings = async (

@@ -28,6 +28,11 @@ import {
   type Booking,
   updateBookingStatus,
 } from "../services/booking.service";
+import {
+  getStudioPackages,
+  type StudioPackage,
+} from "../services/package.service";
+import { getStudios, type Studio } from "../services/studio.service";
 import { clearAuthSession } from "../utils/auth";
 
 const { Title, Paragraph, Text } = Typography;
@@ -40,6 +45,12 @@ interface StatusFormValues {
 interface RescheduleFormValues {
   booking_date: Dayjs;
   start_time: Dayjs;
+}
+
+interface BookingFilters {
+  search: string;
+  studioId?: number;
+  packageId?: number;
 }
 
 const currencyIDR = (value: string | number): string =>
@@ -126,7 +137,15 @@ const Bookings = (): JSX.Element => {
   const [page, setPage] = useState<number>(1);
   const [perPage, setPerPage] = useState<number>(10);
   const [total, setTotal] = useState<number>(0);
-  const [customerName, setCustomerName] = useState<string>("");
+  const [filters, setFilters] = useState<BookingFilters>({
+    search: "",
+  });
+  const [studios, setStudios] = useState<Studio[]>([]);
+  const [studioPackages, setStudioPackages] = useState<StudioPackage[]>([]);
+  const [studioOptionsLoading, setStudioOptionsLoading] =
+    useState<boolean>(false);
+  const [packageOptionsLoading, setPackageOptionsLoading] =
+    useState<boolean>(false);
 
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isStatusModalOpen, setIsStatusModalOpen] = useState<boolean>(false);
@@ -145,7 +164,7 @@ const Bookings = (): JSX.Element => {
   const fetchBookings = async (
     nextPage = page,
     nextPerPage = perPage,
-    customerNameFilter = customerName,
+    nextFilters = filters,
   ): Promise<void> => {
     try {
       setLoading(true);
@@ -153,7 +172,9 @@ const Bookings = (): JSX.Element => {
       const result = await getAdminBookings({
         page: nextPage,
         per_page: nextPerPage,
-        customer_name: customerNameFilter.trim() || undefined,
+        search: nextFilters.search.trim() || undefined,
+        studio_id: nextFilters.studioId,
+        package_id: nextFilters.packageId,
       });
 
       setBookings(result.data);
@@ -222,7 +243,7 @@ const Bookings = (): JSX.Element => {
       });
       notification.success({ message: "Status booking berhasil diupdate" });
       closeStatusModal();
-      await fetchBookings(page, perPage, customerName);
+      await fetchBookings(page, perPage, filters);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
@@ -259,7 +280,7 @@ const Bookings = (): JSX.Element => {
       });
       notification.success({ message: "Booking berhasil di-reschedule" });
       closeRescheduleModal();
-      await fetchBookings(page, perPage, customerName);
+      await fetchBookings(page, perPage, filters);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
@@ -285,10 +306,62 @@ const Bookings = (): JSX.Element => {
 
   useEffect(() => {
     void fetchBookings(1, perPage);
+    void fetchStudios();
   }, []);
 
-  const onSearchCustomer = (): void => {
-    void fetchBookings(1, perPage, customerName);
+  const fetchStudios = async (): Promise<void> => {
+    try {
+      setStudioOptionsLoading(true);
+      const result = await getStudios();
+      setStudios(result);
+    } catch {
+      setStudios([]);
+    } finally {
+      setStudioOptionsLoading(false);
+    }
+  };
+
+  const fetchPackagesByStudio = async (studioId: number): Promise<void> => {
+    try {
+      setPackageOptionsLoading(true);
+      const result = await getStudioPackages(studioId);
+      setStudioPackages(result);
+    } catch {
+      setStudioPackages([]);
+    } finally {
+      setPackageOptionsLoading(false);
+    }
+  };
+
+  const onApplyFilters = (): void => {
+    void fetchBookings(1, perPage, filters);
+  };
+
+  const onResetFilters = (): void => {
+    const emptyFilters: BookingFilters = {
+      search: "",
+      studioId: undefined,
+      packageId: undefined,
+    };
+    setStudioPackages([]);
+    setFilters(emptyFilters);
+    void fetchBookings(1, perPage, emptyFilters);
+  };
+
+  const handleStudioFilterChange = (value?: number): void => {
+    const nextStudioId = value ?? undefined;
+    setFilters((prev) => ({
+      ...prev,
+      studioId: nextStudioId,
+      packageId: undefined,
+    }));
+
+    if (!nextStudioId) {
+      setStudioPackages([]);
+      return;
+    }
+
+    void fetchPackagesByStudio(nextStudioId);
   };
 
   const columns: ColumnsType<Booking> = [
@@ -387,7 +460,7 @@ const Bookings = (): JSX.Element => {
   const onTableChange = (pagination: TablePaginationConfig): void => {
     const nextPage = pagination.current ?? 1;
     const nextPerPage = pagination.pageSize ?? perPage;
-    void fetchBookings(nextPage, nextPerPage, customerName);
+    void fetchBookings(nextPage, nextPerPage, filters);
   };
 
   const expandedRowRender = (record: Booking): JSX.Element => {
@@ -476,25 +549,104 @@ const Bookings = (): JSX.Element => {
         </div>
 
         <Space>
-          <Input
-            allowClear
-            value={customerName}
-            onChange={(event) => setCustomerName(event.target.value)}
-            onPressEnter={onSearchCustomer}
-            placeholder="Search customer name"
-            className="w-[220px]"
-          />
-          <Button onClick={onSearchCustomer}>Search</Button>
           <Tag color="blue">Total: {total}</Tag>
           <Tag color="green">Paid (page): {paidCount}</Tag>
           <Button
             icon={<ReloadOutlined />}
-            onClick={() => void fetchBookings(page, perPage, customerName)}
+            onClick={() => void fetchBookings(page, perPage, filters)}
           >
             Refresh
           </Button>
         </Space>
       </div>
+
+      <Card
+        className="mb-6 rounded-xl shadow-sm border border-gray-200"
+        size="small"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="flex flex-col">
+            <Text className="mb-1 text-xs font-medium text-gray-500">
+              Search
+            </Text>
+            <Input
+              allowClear
+              value={filters.search}
+              onChange={(event) =>
+                setFilters((prev) => ({ ...prev, search: event.target.value }))
+              }
+              onPressEnter={onApplyFilters}
+              placeholder="Invoice / customer name"
+              className="rounded-lg"
+            />
+          </div>
+
+          {/* Studio */}
+          <div className="flex flex-col">
+            <Text className="mb-1 text-xs font-medium text-gray-500">
+              Studio
+            </Text>
+            <Select
+              allowClear
+              showSearch
+              loading={studioOptionsLoading}
+              value={filters.studioId}
+              onChange={handleStudioFilterChange}
+              placeholder="Select studio"
+              optionFilterProp="label"
+              className="w-full"
+              options={studios.map((studio) => ({
+                value: studio.id,
+                label: studio.name,
+              }))}
+            />
+          </div>
+
+          {/* Package */}
+          <div className="flex flex-col">
+            <Text className="mb-1 text-xs font-medium text-gray-500">
+              Package
+            </Text>
+            <Select
+              allowClear
+              showSearch
+              disabled={!filters.studioId}
+              loading={packageOptionsLoading}
+              value={filters.packageId}
+              onChange={(value) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  packageId: value ?? undefined,
+                }))
+              }
+              placeholder={
+                filters.studioId ? "Select package" : "Select studio first"
+              }
+              optionFilterProp="label"
+              className="w-full"
+              options={studioPackages.map((pkg) => ({
+                value: pkg.id,
+                label: pkg.name,
+              }))}
+            />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3 justify-start md:justify-end">
+            <Button
+              type="primary"
+              onClick={onApplyFilters}
+              className="rounded-lg px-6"
+            >
+              Apply Filter
+            </Button>
+
+            <Button onClick={onResetFilters} className="rounded-lg px-6">
+              Reset
+            </Button>
+          </div>
+        </div>
+      </Card>
 
       <Modal
         title={`Change Status${selectedBooking ? ` - ${selectedBooking.invoice_number}` : ""}`}
