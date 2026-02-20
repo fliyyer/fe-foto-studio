@@ -5,7 +5,6 @@ import {
   Card,
   DatePicker,
   Descriptions,
-  Empty,
   Form,
   Input,
   Modal,
@@ -49,6 +48,7 @@ interface RescheduleFormValues {
 
 interface BookingFilters {
   search: string;
+  bookingDate?: string;
   status?: string;
   sortDir?: "asc" | "desc";
   studioId?: number;
@@ -177,8 +177,9 @@ const Bookings = (): JSX.Element => {
         page: nextPage,
         per_page: nextPerPage,
         search: nextFilters.search.trim() || undefined,
+        booking_date: nextFilters.bookingDate,
         status: nextFilters.status,
-        sort_by: nextFilters.sortDir ? "booking_date" : undefined,
+        sort_by: nextFilters.sortDir ? "start_time" : undefined,
         sort_dir: nextFilters.sortDir,
         studio_id: nextFilters.studioId,
         package_id: nextFilters.packageId,
@@ -347,6 +348,7 @@ const Bookings = (): JSX.Element => {
   const onResetFilters = (): void => {
     const emptyFilters: BookingFilters = {
       search: "",
+      bookingDate: undefined,
       status: undefined,
       sortDir: undefined,
       studioId: undefined,
@@ -375,45 +377,8 @@ const Bookings = (): JSX.Element => {
 
   const columns: ColumnsType<Booking> = [
     {
-      title: "Invoice",
-      dataIndex: "invoice_number",
-      key: "invoice_number",
-      width: 210,
-      render: (value: string) => <Text code>{value}</Text>,
-    },
-    {
-      title: "Customer",
-      key: "customer",
-      width: 190,
-      render: (_, record) => (
-        <div>
-          <p className="mb-0 font-medium text-brand-black">
-            {record.customer.name}
-          </p>
-          <p className="mb-0 text-xs text-brand-black/60">
-            {record.customer.phone}
-          </p>
-        </div>
-      ),
-    },
-    {
-      title: "Paket / Studio",
-      key: "package",
-      width: 230,
-      render: (_, record) => (
-        <div>
-          <p className="mb-0 text-sm font-medium text-brand-black">
-            {record.package.name}
-          </p>
-          <p className="mb-0 text-xs text-brand-black/60">
-            {record.package.studio.name}
-          </p>
-        </div>
-      ),
-    },
-    {
       title: "Jadwal",
-      key: "booking_date",
+      key: "start_time",
       width: 200,
       sorter: true,
       sortDirections: ["ascend", "descend"],
@@ -434,10 +399,73 @@ const Bookings = (): JSX.Element => {
       ),
     },
     {
+      title: "Customer",
+      key: "customer",
+      width: 190,
+      render: (_, record) => (
+        <div>
+          <p className="mb-0 font-medium text-brand-black">
+            {record.customer.name}
+          </p>
+          <p className="mb-0 text-xs text-brand-black/60">
+            {record.customer.phone}
+          </p>
+        </div>
+      ),
+    },
+    {
+      title: "Paket / Studio",
+      key: "package",
+      width: 200,
+      render: (_, record) => (
+        <div>
+          <p className="mb-0 text-sm font-medium text-brand-black">
+            {record.package.name}
+          </p>
+          <p className="mb-0 text-xs text-brand-black/60">
+            {record.package.studio.name}
+          </p>
+        </div>
+      ),
+    },
+    {
+      title: "Background",
+      key: "background",
+      width: 180,
+      render: (_, record) => {
+        const parsedNotes = parseBookingNotes(record.notes);
+        return <Text>{parsedNotes.background || "-"}</Text>;
+      },
+    },
+    {
+      title: "Add-ons",
+      key: "addons",
+      width: 180,
+      render: (_, record) =>
+        record.booking_addons.length === 0 ? (
+          <Text type="secondary">-</Text>
+        ) : (
+          <div className="space-y-2">
+            {record.booking_addons.map((item) => (
+              <div key={item.id}>
+                <p className="mb-0 text-xs font-medium text-brand-black">
+                  {item.addon.name}
+                  <span className="text-brand-black/60 ml-1">
+                    ({item.addon.type})
+                  </span>
+                </p>
+                <p className="mb-0 text-[11px] text-brand-black/70">
+                  {item.qty} x {currencyIDR(item.price)}
+                </p>
+              </div>
+            ))}
+          </div>
+        ),
+    },
+    {
       title: "Total",
       dataIndex: "total_price",
       key: "total_price",
-      align: "right",
       width: 150,
       render: (value: string) => <Text strong>{currencyIDR(value)}</Text>,
     },
@@ -505,11 +533,11 @@ const Bookings = (): JSX.Element => {
     return (
       <div className="space-y-3">
         <Descriptions size="small" bordered column={2}>
+          <Descriptions.Item label="Invoice">
+            {record.payment_reference ?? "-"}
+          </Descriptions.Item>
           <Descriptions.Item label="Payment Method">
             {record.payment_method}
-          </Descriptions.Item>
-          <Descriptions.Item label="Payment Ref">
-            {record.payment_reference ?? "-"}
           </Descriptions.Item>
           <Descriptions.Item label="Payment Expired At">
             {record.payment_expired_at
@@ -518,9 +546,6 @@ const Bookings = (): JSX.Element => {
           </Descriptions.Item>
           <Descriptions.Item label="Customer Email">
             {record.customer.email}
-          </Descriptions.Item>
-          <Descriptions.Item label="Background">
-            {parsedNotes.background}
           </Descriptions.Item>
           <Descriptions.Item label="Izin Upload Sosial Media">
             {parsedNotes.allowSocialMediaUpload}
@@ -531,34 +556,6 @@ const Bookings = (): JSX.Element => {
           <pre className="mb-0 overflow-x-auto whitespace-pre-wrap text-xs text-brand-black/70">
             {parsedNotes.bookingNotes}
           </pre>
-        </Card>
-
-        <Card size="small" title="Add-ons">
-          {record.booking_addons.length === 0 ? (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="Tidak ada add-ons"
-            />
-          ) : (
-            <div className="space-y-2">
-              {record.booking_addons.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between rounded border border-brand-black/10 px-3 py-2"
-                >
-                  <div>
-                    <p className="mb-0 text-sm font-medium text-brand-black">
-                      {item.addon.name}
-                    </p>
-                    <p className="mb-0 text-xs text-brand-black/60">
-                      {item.qty} x {currencyIDR(item.price)}
-                    </p>
-                  </div>
-                  <Text strong>{currencyIDR(item.subtotal)}</Text>
-                </div>
-              ))}
-            </div>
-          )}
         </Card>
       </div>
     );
@@ -600,7 +597,7 @@ const Bookings = (): JSX.Element => {
         className="mb-6 rounded-xl shadow-sm border border-gray-200"
         size="small"
       >
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
           <div className="flex flex-col">
             <Text className="mb-1 text-xs font-medium text-gray-500">
               Search
@@ -688,6 +685,27 @@ const Bookings = (): JSX.Element => {
                 { label: "Completed", value: "completed" },
                 { label: "Cancelled", value: "cancelled" },
               ]}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <Text className="mb-1 text-xs font-medium text-gray-500">
+              Booking Date
+            </Text>
+            <DatePicker
+              allowClear
+              className="w-full"
+              format="YYYY-MM-DD"
+              value={filters.bookingDate ? dayjs(filters.bookingDate) : null}
+              onChange={(_, dateString) => {
+                const nextBookingDate = Array.isArray(dateString)
+                  ? dateString[0]
+                  : dateString;
+                setFilters((prev) => ({
+                  ...prev,
+                  bookingDate: nextBookingDate || undefined,
+                }));
+              }}
             />
           </div>
 
@@ -803,7 +821,7 @@ const Bookings = (): JSX.Element => {
         loading={loading}
         columns={columns}
         dataSource={bookings}
-        scroll={{ x: 1360 }}
+        scroll={{ x: 1720 }}
         expandable={{ expandedRowRender }}
         pagination={{
           current: page,
