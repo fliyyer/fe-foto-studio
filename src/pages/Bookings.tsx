@@ -49,9 +49,13 @@ interface RescheduleFormValues {
 
 interface BookingFilters {
   search: string;
+  status?: string;
+  sortDir?: "asc" | "desc";
   studioId?: number;
   packageId?: number;
 }
+
+type TableSortOrder = "ascend" | "descend" | null;
 
 const currencyIDR = (value: string | number): string =>
   new Intl.NumberFormat("id-ID", {
@@ -173,6 +177,9 @@ const Bookings = (): JSX.Element => {
         page: nextPage,
         per_page: nextPerPage,
         search: nextFilters.search.trim() || undefined,
+        status: nextFilters.status,
+        sort_by: nextFilters.sortDir ? "booking_date" : undefined,
+        sort_dir: nextFilters.sortDir,
         studio_id: nextFilters.studioId,
         package_id: nextFilters.packageId,
       });
@@ -340,6 +347,8 @@ const Bookings = (): JSX.Element => {
   const onResetFilters = (): void => {
     const emptyFilters: BookingFilters = {
       search: "",
+      status: undefined,
+      sortDir: undefined,
       studioId: undefined,
       packageId: undefined,
     };
@@ -388,31 +397,38 @@ const Bookings = (): JSX.Element => {
       ),
     },
     {
-      title: "Studio / Paket",
+      title: "Paket / Studio",
       key: "package",
       width: 230,
       render: (_, record) => (
         <div>
           <p className="mb-0 text-sm font-medium text-brand-black">
-            {record.package.studio.name}
+            {record.package.name}
           </p>
           <p className="mb-0 text-xs text-brand-black/60">
-            {record.package.name}
+            {record.package.studio.name}
           </p>
         </div>
       ),
     },
     {
       title: "Jadwal",
-      key: "schedule",
+      key: "booking_date",
       width: 200,
+      sorter: true,
+      sortDirections: ["ascend", "descend"],
+      sortOrder: (filters.sortDir === "asc"
+        ? "ascend"
+        : filters.sortDir === "desc"
+          ? "descend"
+          : null) as TableSortOrder,
       render: (_, record) => (
         <div>
-          <p className="mb-0 text-sm text-brand-black/80">
-            {formatDate(record.booking_date)}
+          <p className="mb-0 text-sm font-medium text-brand-black">
+            {record.start_time.slice(0, 5)} - {record.end_time.slice(0, 5)}
           </p>
           <p className="mb-0 text-xs text-brand-black/60">
-            {record.start_time.slice(0, 5)} - {record.end_time.slice(0, 5)}
+            {formatDate(record.booking_date)}
           </p>
         </div>
       ),
@@ -457,10 +473,30 @@ const Bookings = (): JSX.Element => {
     },
   ];
 
-  const onTableChange = (pagination: TablePaginationConfig): void => {
+  const onTableChange = (
+    pagination: TablePaginationConfig,
+    _: Record<string, unknown>,
+    sorter: unknown,
+  ): void => {
     const nextPage = pagination.current ?? 1;
     const nextPerPage = pagination.pageSize ?? perPage;
-    void fetchBookings(nextPage, nextPerPage, filters);
+    const sorterValue = Array.isArray(sorter) ? sorter[0] : sorter;
+    const order =
+      typeof sorterValue === "object" &&
+      sorterValue !== null &&
+      "order" in sorterValue
+        ? (sorterValue.order as TableSortOrder | undefined)
+        : undefined;
+
+    const nextSortDir =
+      order === "ascend" ? "asc" : order === "descend" ? "desc" : undefined;
+    const nextFilters: BookingFilters = {
+      ...filters,
+      sortDir: nextSortDir,
+    };
+
+    setFilters(nextFilters);
+    void fetchBookings(nextPage, nextPerPage, nextFilters);
   };
 
   const expandedRowRender = (record: Booking): JSX.Element => {
@@ -564,7 +600,7 @@ const Bookings = (): JSX.Element => {
         className="mb-6 rounded-xl shadow-sm border border-gray-200"
         size="small"
       >
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
           <div className="flex flex-col">
             <Text className="mb-1 text-xs font-medium text-gray-500">
               Search
@@ -628,6 +664,30 @@ const Bookings = (): JSX.Element => {
                 value: pkg.id,
                 label: pkg.name,
               }))}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <Text className="mb-1 text-xs font-medium text-gray-500">
+              Status
+            </Text>
+            <Select
+              allowClear
+              value={filters.status}
+              onChange={(value) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  status: value ?? undefined,
+                }))
+              }
+              placeholder="Select status"
+              className="w-full"
+              options={[
+                { label: "Pending", value: "pending" },
+                { label: "Confirmed", value: "confirmed" },
+                { label: "Completed", value: "completed" },
+                { label: "Cancelled", value: "cancelled" },
+              ]}
             />
           </div>
 

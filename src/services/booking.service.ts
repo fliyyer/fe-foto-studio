@@ -100,6 +100,9 @@ export interface BookingListParams {
   per_page?: number;
   customer_name?: string;
   search?: string;
+  status?: string;
+  sort_by?: string;
+  sort_dir?: "asc" | "desc";
   studio_id?: number;
   package_id?: number;
   studio_name?: string;
