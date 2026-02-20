@@ -118,8 +118,8 @@ const parseBookingNotes = (notes: string | null): ParsedBookingNotes => {
 
 const statusColor = (status: string): string => {
   const key = status.toLowerCase();
-  if (key === "paid" || key === "confirmed" || key === "completed")
-    return "green";
+  if (key === "confirmed") return "blue";
+  if (key === "paid" || key === "completed") return "green";
   if (key === "pending" || key === "unpaid") return "orange";
   if (key === "cancelled" || key === "failed") return "red";
   return "default";
