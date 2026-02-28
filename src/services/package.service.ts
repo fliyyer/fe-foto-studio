@@ -14,6 +14,7 @@ interface StudioPackageResponse {
   description: string | null;
   background: string | null;
   max_person: number;
+  print_photo?: number | null;
   is_active: boolean | number;
   thumbnail: string | null;
   created_at: string;
@@ -69,6 +70,7 @@ interface StudioPackagePayloadBase {
   description: string;
   background: string;
   max_person: number;
+  print_photo: number;
   is_active: boolean;
 }
 
@@ -153,6 +155,7 @@ export const createStudioPackage = async (
   formData.append("description", payload.description);
   formData.append("background", payload.background);
   formData.append("max_person", String(payload.max_person));
+  formData.append("print_photo", String(payload.print_photo));
   formData.append("is_active", payload.is_active ? "1" : "0");
   formData.append("thumbnail", payload.thumbnail);
 
@@ -183,6 +186,7 @@ export const updateStudioPackage = async (
   formData.append("description", payload.description);
   formData.append("background", payload.background);
   formData.append("max_person", String(payload.max_person));
+  formData.append("print_photo", String(payload.print_photo));
   formData.append("is_active", payload.is_active ? "1" : "0");
   if (payload.thumbnail) {
     formData.append("thumbnail", payload.thumbnail);

@@ -55,6 +55,7 @@ interface PackageFormValues {
   description: string;
   background: string;
   max_person: number;
+  print_photo: number;
   is_active: 1 | 0;
 }
 
@@ -255,6 +256,7 @@ const Packages = (): JSX.Element => {
       description: pkg.description ?? "",
       background: pkg.background ?? "",
       max_person: pkg.max_person,
+      print_photo: pkg.print_photo ?? 1,
       is_active: Number(pkg.is_active) === 1 ? 1 : 0,
     });
     setEditUploadFiles([]);
@@ -409,6 +411,7 @@ const Packages = (): JSX.Element => {
             slot_duration: 1,
             max_booking_per_slot: 1,
             max_person: 1,
+            print_photo: 1,
             background: "",
           }}
         >
@@ -474,13 +477,23 @@ const Packages = (): JSX.Element => {
             </Form.Item>
           </div>
 
-          <Form.Item
-            label="Background"
-            name="background"
-            rules={[{ required: true, message: "Background wajib diisi" }]}
-          >
-            <Input placeholder="Putih, Merah" />
-          </Form.Item>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Form.Item
+              label="Free Print Photo"
+              name="print_photo"
+              rules={[{ required: true, message: "Jumlah print wajib diisi" }]}
+            >
+              <InputNumber className="!w-full" min={1} />
+            </Form.Item>
+
+            <Form.Item
+              label="Background"
+              name="background"
+              rules={[{ required: true, message: "Background wajib diisi" }]}
+            >
+              <Input placeholder="Putih, Merah" />
+            </Form.Item>
+          </div>
           <Form.Item
             label="Description"
             name="description"
@@ -593,19 +606,30 @@ const Packages = (): JSX.Element => {
             </Form.Item>
           </div>
 
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Form.Item
+              label="Free Print Photo"
+              name="print_photo"
+              rules={[{ required: true, message: "Jumlah print wajib diisi" }]}
+            >
+              <InputNumber className="!w-full" min={1} />
+            </Form.Item>
+
+            <Form.Item
+              label="Background"
+              name="background"
+              rules={[{ required: true, message: "Background wajib diisi" }]}
+            >
+              <Input placeholder="Putih, Merah" />
+            </Form.Item>
+          </div>
+
           <Form.Item
             label="Description"
             name="description"
             rules={[{ required: true, message: "Deskripsi wajib diisi" }]}
           >
             <Input.TextArea rows={3} />
-          </Form.Item>
-          <Form.Item
-            label="Background"
-            name="background"
-            rules={[{ required: true, message: "Background wajib diisi" }]}
-          >
-            <Input placeholder="Putih, Merah" />
           </Form.Item>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
